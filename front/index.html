@@ -5,10 +5,27 @@
         <meta name="viewport" content="width=device-width" />
         <link rel="icon" type="image/jpg" href="icon.svg">
         <link rel="stylesheet" type="text/css" href="style.css" />
-        <link href="fontawesome-free-5.15.4-web/css/all.css" rel="stylesheet">
+        <script src="vue.js"></script>
         <title>Groupomania</title>
     </head>
     <body>
+        <div id="test">
+            <div v-for="item in shoppingCart">
+                {{item.label}} : {{item.cost}} €
+            </div>
+        </div>
+        <script>
+            const app = new Vue({
+                el: '#test',
+                data: {
+                    shoppingCart: [
+                        { label: 'Pommes', cost: 6 },
+                        { label: 'Bananes', cost: 2 },
+                        { label: 'Noix de coco', cost: 8 }
+                    ]
+                }
+            })
+        </script>
         <footer>
         </footer>
     </body>
