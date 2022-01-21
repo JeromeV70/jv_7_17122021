@@ -1,5 +1,6 @@
 <template>
   <main>
+    <div id="logo"><img src='./assets/icon.svg' alt='logo' title='groupomania' />Groupomania</div>
     <nav>
       <router-link to="/inscription">Inscription</router-link>
       <router-link to="/connexion">Connexion</router-link>
@@ -28,7 +29,19 @@
 main {
   display:grid;
   grid-template-columns: auto;
-  grid-template-rows: auto,auto,auto;
+  grid-template-rows: auto,auto,auto,auto;
+}
+
+#logo {
+  grid-column:1/2;
+  grid-row:1/2;
+  font-weight: bolder;
+  font-size: 1.5em;
+  img {
+    height:3em;
+    vertical-align: middle;
+    margin:0;
+    }
 }
 
 nav,footer {
@@ -42,18 +55,18 @@ nav,footer {
     font-weight: bold;
     color: #2c3e50;
     &.router-link-exact-active {
-      text-decoration:underline;
+      text-decoration:underline red;
     }
   }
 }
 
 nav {
   grid-column:1/2;
-  grid-row:1/2;
+  grid-row:2/3;
 }
 
 footer {
   grid-column:1/2;
-  grid-row:3/4;
+  grid-row:4/5;
 }
 </style>

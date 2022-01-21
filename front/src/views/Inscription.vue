@@ -1,11 +1,25 @@
 <template>
     <form>
-        <input id="email" type="email" value="Email" required /><br>
-        <input id="password" type="password" value="Mot de passe" required /><br>
-        <input id="nom" type="text" value="Prénom Nom" required /><br>
-        <button id="envoi">Valider</button>
+        <input id="email" type="email" placeholder="Email" v-model="email" required /><br>
+        <input id="password" type="password" placeholder="Mot de passe" v-model="password" required /><br>
+        <input id="nom" type="text" placeholder="Prénom Nom" v-model="nom" required /><br>
+        <button @click="envoi()" id="envoi">Valider</button>
     </form>
 </template>
+<script>
+export default {
+name:"app",
+data() {
+  return {password:'',email:'',nom:''}
+},
+methods: {
+        envoi() {
+            alert(this.email+'\n'+this.password+'\n'+this.nom)
+        },
+    },
+}
+</script>
+
 <style>
 img {
     margin:1em;
@@ -13,7 +27,7 @@ img {
 form {
   display:grid;
   grid-column:1/2;
-  grid-row:2/3;
+  grid-row:3/4;
   justify-items: center;
 }
 </style>
