@@ -3,11 +3,11 @@
         <div class="envoi"><button tabindex="0">Créer</button></div>
         <article :id='id_article'>
             <div class="top">
-                <div class="nom" :data-id='id_compte'><img :src="require('../assets/'+avatar+'.webp')" alt='avatar' title='avatar'/>{{ nom_auteur }}</div>
+                <div class="nom" :data-id='id_compte'><img :src="require('../assets/profiles/'+avatar+'.webp')" alt='avatar' title='avatar'/>{{ nom_auteur }}</div>
                 <div class="titre">{{ titre }}</div>
                 <div class="date">{{ date_format(date) }}</div>
             </div>
-            <img v-bind:src="require('../assets/'+image+'.webp')" alt="image"/>
+            <img v-bind:src="require('../assets/images/'+image+'.webp')" alt="image"/>
             <div class="texte">{{ texte }}</div>
             <div class="bottom">
                 <button class="likes" tabindex="0" title="likes"><img src='../assets/arrow-up-solid.svg' alt="like_button"/>{{ likes }}</button>
@@ -21,7 +21,7 @@
         <div class="envoi"><button tabindex="0">Envoyer</button></div>
         <div v-for="item in commentaires" :key="item" :data-id='item.id_commentaire' class="commentaire">
             <div class="top">
-                <div class="nom" :data-id='item.id_compte'><img :src="require('../assets/'+item.avatar+'.webp')" alt='avatar' title='avatar'/>{{ item.nom }}</div>
+                <div class="nom" :data-id='item.id_compte'><img :src="require('../assets/profiles/'+item.avatar+'.webp')" alt='avatar' title='avatar'/>{{ item.nom }}</div>
                 <div class="date">{{ date_format(item.date) }}</div>
             </div>
             <div class="texte">{{ item.message }}</div>

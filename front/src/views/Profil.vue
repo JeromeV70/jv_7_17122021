@@ -2,7 +2,7 @@
     <form>
         <input type="file" id="file" accept=".jpg, .png, .webp" @change="displayAvatar()">
         <label id="avatar" for="file">
-            <img src='../assets/photo-profil.webp' alt="portrait"/>
+            <img src='../assets/profiles/photo-profil.webp' alt="portrait"/>
         </label>
         <input id="email" type="email" placeholder="Email" v-model="email" required /><br>
         <input id="password" type="password" placeholder="Mot de passe" v-model="password" required /><br>
