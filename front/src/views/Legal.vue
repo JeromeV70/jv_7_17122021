@@ -1,5 +1,6 @@
 <template>
     <div id=legal>
+        <a href="mailto:test@test.com" class="bigbutton" title="contact"><img src='../assets/contact.svg' alt="contact"/></a>
         <p>
         <span class="titres">Identification</span><br>
         <br>
@@ -44,7 +45,10 @@
         </p>
     </div>
 </template>
-<style>
+<style lang="scss">
+#legal {
+    margin-left:1em;
+}
 .titres {
     font-weight: bolder;
 }

@@ -34,7 +34,7 @@ const routes = [
     path: '/legal',
     name: 'Legal',
     component: Legal
-  },
+  }
 ]
 
 const router = createRouter({

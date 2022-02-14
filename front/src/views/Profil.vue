@@ -2,23 +2,28 @@
     <form>
         <input type="file" id="file" accept=".jpg, .png, .webp" @change="displayAvatar()">
         <label id="avatar" for="file">
-            <img src='../assets/profiles/photo-profil.webp' alt="portrait"/>
+            <img src='../assets/profiles/0.webp' alt="portrait" title="avatar"/>
         </label>
-        <input id="email" type="email" placeholder="Email" v-model="email" required /><br>
-        <input id="password" type="password" placeholder="Mot de passe" v-model="password" required /><br>
-        <input id="nom" type="text" placeholder="Prénom Nom" required /><br>
-        <button id="envoi" @click="envoi">Valider</button>
+        <input type="email" placeholder="Email" v-model="email" required />
+        <input type="password" placeholder="Mot de passe" v-model="password" required />
+        <input type="password" placeholder="Nouveau mot de passe" v-model="newpassword" />
+        <input type="text" placeholder="Prénom Nom" required />
+        <button @click="envoi" class="bigbutton" title="valider"><img src='../assets/valid.svg' alt="valider"/></button>
+        <button @click="supprimer" class="bigbutton" title="supprimer le compte"><img src='../assets/suicide.svg' alt="supprimer le compte"/></button>
     </form>
 </template>
 <script>
 export default {
 name:"app",
 data() {
-  return {password:'',email:''}
+  return {password:'',newpassword:'',email:''}
 },
 methods: {
         envoi() {
             alert(this.email+'\n'+this.password)
+        },
+        supprimer() {
+            alert(this.password)
         },
         displayAvatar() {
             var preview = document.querySelector('#avatar>img');
@@ -31,20 +36,27 @@ methods: {
         }
     }
 }
-
 </script>
-<style>
+<style lang="scss">
+form {
+    text-align: center;
+    width:min-content;
+    margin:auto;
+    input{
+        display:block;
+
+        font-size:1.7em;
+    }
+    .bigbutton {
+        margin:2em auto;
+    }
+}
 #avatar img {
     width:22em;
     height:22em;
-}
-form {
-  display:grid;
-  grid-column:1/2;
-  grid-row:3/4;
-  justify-items: center;
+    margin-top:2em;
 }
 #file {
-    opacity:0;
+    display:none;
 }
 </style>

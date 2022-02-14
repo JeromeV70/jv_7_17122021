@@ -2,77 +2,81 @@
   <main>
     <div id="logo"><img src='./assets/icon.svg' alt='logo' title='groupomania' />Groupomania</div>
     <nav>
-      <router-link to="/inscription">Inscription</router-link>
-      <router-link to="/connexion">Connexion</router-link>
-      <router-link to="/profil">Profil</router-link>
-      <router-link to="/forum">Forum</router-link>
+      <router-link @click="connect()" to="/connexion" class="bigbutton" title="connexion"><img v-if="login == false" src='./assets/login.svg' alt="connexion"/><img v-else src='./assets/exit.svg' alt="connexion"/></router-link>
+      <router-link to="/profil" class="bigbutton" title="profil"><img src='./assets/profil.svg' alt="profil"/></router-link>
+      <router-link to="/forum" class="bigbutton" title="forum"><img src='./assets/forum.svg' alt="forum"/></router-link>
+      <router-link to="/legal" class="bigbutton" title="legal"><img src='./assets/legal.svg' alt="legal"/></router-link>
+      <a @click="nightMode()" class="bigbutton" tabindex="0" title="night mode"><img src='./assets/night.svg' alt="night mode"/></a>
     </nav>
     <router-view></router-view>
-    <footer>
-      <a href="mailto:test@test.com">Contact</a>
-      <router-link to="/legal">Legal</router-link>
-    </footer>
   </main>
 </template>
 <script>
-
+export default {
+name:"app",
+data() {
+  return {
+            login:true
+        }
+},
+methods: {
+        connect() {
+          if (this.login == true) {
+            this.login = false;
+          }
+        },
+        nightMode() {
+          let root = document.documentElement;
+          if (root.style.cssText == '--color-background:black; --color-text:#F5F5F5; --darkfilter:grayscale(33%);') {
+            root.style.cssText = '--color-background:#F5F5F5; --color-text:black; --darkfilter:grayscale(0%);';
+          }
+          else {
+            root.style.cssText = '--color-background:black; --color-text:#F5F5F5; --darkfilter:grayscale(33%);';
+          }
+        }
+    }
+}
 </script>
 <style lang="scss">
+
+$color-active:orange;
+$color-vote:#FFD580;
+$color-shadow:grey;
+$color-button:lightgrey;
+
 #app {
   font-family: Ubuntu, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
-  font-size: 0.5em;
-}
-
-button, button img{
+  color: var(--color-text);
+  background-color:var(--color-background);
   font-size:1em;
-  height:1em;
-}
-
-main {
-  display:grid;
-  grid-template-columns: auto;
-  grid-template-rows: auto,auto,auto,auto;
+  padding-bottom:100%;
 }
 
 #logo {
-  grid-column:1/2;
-  grid-row:1/2;
   font-weight: bolder;
-  font-size: 1.5em;
+  font-size:4em;
+  margin-bottom:0.5em;
   img {
-    height:3em;
+    height:2em;
     vertical-align: middle;
     margin:0;
     }
 }
 
-nav,footer {
+nav {
   display:flex;
-  flex-flow:row nowrap;
+  flex-flow:row wrap;
   justify-content: center;
   a {
-    width:min-content;
-    margin:1em;
-    text-decoration: none;
-    font-weight: bold;
-    color: #2c3e50;
     &.router-link-exact-active {
-      text-decoration:underline red;
+      background-color:$color-vote;
     }
   }
-}
-
-nav {
-  grid-column:1/2;
-  grid-row:2/3;
-}
-
-footer {
-  grid-column:1/2;
-  grid-row:4/5;
+  .bigbutton {
+    margin: 0.25em 1em;
+  }
 }
 </style>
