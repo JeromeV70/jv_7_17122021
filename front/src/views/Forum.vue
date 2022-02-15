@@ -22,7 +22,11 @@
             <article :data-id='article.id_article' :data-compte='article.id_compte'>
                 <!-- tête de l'article : avatar, nom et date-->
                 <div class="top">
-                    <div class="nom" :data-id='article.id_compte'><img :src="require('../assets/profiles/'+article.id_compte+'.webp')" alt='avatar' title='avatar'/>{{ article.nom_auteur }}</div>
+                    <div class="nom" :data-id='article.id_compte'>
+                        <img v-if="article.avatar == true" :src="require('../assets/profiles/'+article.id_compte+'.webp')" alt='avatar' title='avatar'/>
+                        <img v-else :src="require('../assets/profiles/0.webp')" alt='avatar' title='avatar'/>
+                        {{ article.nom_auteur }}
+                    </div>
                     <div class="date">{{ date_format(article.date) }}</div>
                 </div>
                 <!-- titre de l'article -->
@@ -63,7 +67,11 @@
                 <blockquote v-for="com in commentaires" :key="com" :data-id='com.id_commentaire' :data-compte='com.id_compte' class="commentaire">
                     <!-- tête du commentaire : avatar, nom et date-->
                     <div class="top">
-                        <div class="nom" :data-id='com.id_compte'><img :src="require('../assets/profiles/'+com.id_compte+'.webp')" alt='avatar' title='avatar'/>{{ com.nom }}</div>
+                        <div class="nom" :data-id='com.id_compte'>
+                            <img v-if="com.avatar == true" :src="require('../assets/profiles/'+com.id_compte+'.webp')" alt='avatar' title='avatar'/>
+                            <img v-else :src="require('../assets/profiles/0.webp')" alt='avatar' title='avatar'/>
+                            {{ com.nom }}
+                        </div>
                         <div class="date">{{ date_format(com.date) }}</div>
                     </div>
                     <!-- texte du commentaire -->
@@ -116,6 +124,7 @@ data() {
                     {
                         id_article:49828942357,
                         id_compte:1,
+                        avatar:false,
                         nom_auteur:'Omer Simpson',
                         date:1642519961000,
                         titre:'Un drôle de chat',
@@ -130,6 +139,7 @@ data() {
                     {
                         id_article:49828942358,
                         id_compte:2,
+                        avatar:true,
                         nom_auteur:'Marge Simpson',
                         date:1642529961000,
                         titre:'Un drôle de chien',
@@ -144,6 +154,7 @@ data() {
                     {
                         id_article:49828942359,
                         id_compte:1,
+                        avatar:false,
                         nom_auteur:'Homer Simpson',
                         date:1642529962000,
                         titre:'Où est mon donut ? Je l\'ai cherché partout cet après-midi il est nul part !',
@@ -158,6 +169,7 @@ data() {
                     {
                         id_article:49828942360,
                         id_compte:6,
+                        avatar:true,
                         nom_auteur:'Apu Nahasapeemapetilon',
                         date:1642529969000,
                         titre:'Un drôle d\'oiseau',
@@ -172,6 +184,7 @@ data() {
                     {
                         id_article:49828942361,
                         id_compte:3,
+                        avatar:true,
                         nom_auteur:'Maggie Simpson',
                         date:1642529970000,
                         titre:'Un drôle de cheval',
@@ -186,12 +199,12 @@ data() {
                 ],
         commentaires:
                     [
-                        {id_commentaire:1902859275,id_compte:3,id_article:49828942361,nom:'Maggie Simpson',date:1643902543000,message:'cet animal est vraiment très drôle !',upvote:3,downvote:0,signalement:0,feedback:true},
-                        {id_commentaire:1902859276,id_compte:3,id_article:49828942361,nom:'Maggie Simpson',date:1643902553000,message:'cet animal est vraiment très beau !',upvote:2,downvote:1,signalement:0,feedback:true},
-                        {id_commentaire:1092859232,id_compte:5,id_article:49828942361,nom:'Bender Rodriguez',date:1592859232564,message:'oui',upvote:11,downvote:2,signalement:0,feedback:null},
-                        {id_commentaire:1092859245,id_compte:6,id_article:49828942361,nom:'Apu Nahasapeemapetilon',date:1592859232574,message:'excellent !',upvote:1,downvote:1,signalement:0,feedback:null},
-                        {id_commentaire:1786943823,id_compte:2,id_article:49828942361,nom:'Marge Simpson',date:1596943823132,message:'J\'ai rigolé XD',upvote:1,downvote:0,signalement:0,feedback:false},
-                        {id_commentaire:1786943824,id_compte:1,id_article:49828942361,nom:'Homer Simpson',date:1596943824132,message:'Où es mon donut ?',upvote:8,downvote:2,signalement:0,feedback:null}
+                        {id_commentaire:1902859275,id_compte:3,avatar:true,id_article:49828942361,nom:'Maggie Simpson',date:1643902543000,message:'cet animal est vraiment très drôle !',upvote:3,downvote:0,signalement:0,feedback:true},
+                        {id_commentaire:1902859276,id_compte:3,avatar:true,id_article:49828942361,nom:'Maggie Simpson',date:1643902553000,message:'cet animal est vraiment très beau !',upvote:2,downvote:1,signalement:0,feedback:true},
+                        {id_commentaire:1092859232,id_compte:5,avatar:true,id_article:49828942361,nom:'Bender Rodriguez',date:1592859232564,message:'oui',upvote:11,downvote:2,signalement:0,feedback:null},
+                        {id_commentaire:1092859245,id_compte:6,avatar:true,id_article:49828942361,nom:'Apu Nahasapeemapetilon',date:1592859232574,message:'excellent !',upvote:1,downvote:1,signalement:0,feedback:null},
+                        {id_commentaire:1786943823,id_compte:2,avatar:true,id_article:49828942361,nom:'Marge Simpson',date:1596943823132,message:'J\'ai rigolé XD',upvote:1,downvote:0,signalement:0,feedback:false},
+                        {id_commentaire:1786943824,id_compte:1,avatar:false,id_article:49828942361,nom:'Homer Simpson',date:1596943824132,message:'Où es mon donut ?',upvote:8,downvote:2,signalement:0,feedback:null}
                     ]
         }
 },
@@ -378,6 +391,7 @@ $color-button:lightgrey;
         width: calc(100% - 0.3em);
         font-size:1.5em;
         margin-bottom:0.5em;
+        border-radius: 0.2em;
         background-color:var(--color-background);
         color:var(--color-text);
     }
@@ -386,6 +400,7 @@ $color-button:lightgrey;
         height:6em;
         font-size:1.25em;
         margin-top:0.5em;
+        border-radius: 0.2em;
         background-color:var(--color-background);
         color:var(--color-text);
     }
@@ -394,8 +409,9 @@ $color-button:lightgrey;
 article {
     border-radius: 0.5em;
     box-shadow: 1px 1px 0.4em $color-shadow;
-    margin:0.5em 0 0 0;
+    margin:0.5em auto 0 auto;
     padding:0.5em;
+    max-width: 70em;
     .nom img {
         height: 4em;
         width: 4em;
@@ -440,12 +456,13 @@ article {
     text-align: left;
     border-radius: 0.3em;
     box-shadow: 1px 1px 0.4em $color-shadow;
-    margin:0.5em 0 0 1em;
+    margin:0.5em auto 0 auto;
     padding:0.5em;
+    max-width:68em;
 }
 .commentaire-redaction {
     border:none;
-    margin:0.5em 0 0 0;
+    margin:0.5em auto 0 auto;
     width: calc(100% - 1em);
     textarea {
         border:none;
@@ -454,6 +471,7 @@ article {
         font-size:1.25em;
         background-color:var(--color-background);
         color:var(--color-text);
+        border-radius: 0.2em;
     }
 }
 

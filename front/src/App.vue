@@ -2,11 +2,11 @@
   <main>
     <div id="logo"><img src='./assets/icon.svg' alt='logo' title='groupomania' />Groupomania</div>
     <nav>
-      <router-link @click="connect()" to="/connexion" class="bigbutton" title="connexion"><img v-if="login == false" src='./assets/login.svg' alt="connexion"/><img v-else src='./assets/exit.svg' alt="connexion"/></router-link>
+      <router-link @click="connect()" to="/connexion" class="bigbutton" :title="title()"><img v-if="login == false" src='./assets/login.svg' alt="connexion"/><img v-else src='./assets/exit.svg' alt="déconnexion"/></router-link>
       <router-link to="/profil" class="bigbutton" title="profil"><img src='./assets/profil.svg' alt="profil"/></router-link>
       <router-link to="/forum" class="bigbutton" title="forum"><img src='./assets/forum.svg' alt="forum"/></router-link>
       <router-link to="/legal" class="bigbutton" title="legal"><img src='./assets/legal.svg' alt="legal"/></router-link>
-      <a @click="nightMode()" class="bigbutton" tabindex="0" title="night mode"><img src='./assets/night.svg' alt="night mode"/></a>
+      <a @click="nightMode()" class="bigbutton" tabindex="0" title="mode nuit"><img src='./assets/night.svg' alt="mode nuit"/></a>
     </nav>
     <router-view></router-view>
   </main>
@@ -20,18 +20,36 @@ data() {
         }
 },
 methods: {
+        // fermer la session en cours si clic sur bouton de connexion / déconnexion
         connect() {
           if (this.login == true) {
             this.login = false;
           }
         },
+        // titre du bouton "connexion" ou "déconnnexion"
+        title() {
+          if(this.login == true){return "déconnexion"}
+          else {return "connexion"}
+        },
         nightMode() {
           let root = document.documentElement;
-          if (root.style.cssText == '--color-background:black; --color-text:#F5F5F5; --darkfilter:grayscale(33%);') {
-            root.style.cssText = '--color-background:#F5F5F5; --color-text:black; --darkfilter:grayscale(0%);';
+          if (root.style.getPropertyValue('--color-background') == '#F5F5F5') {
+            root.style.setProperty('--color-background','black');
           }
           else {
-            root.style.cssText = '--color-background:black; --color-text:#F5F5F5; --darkfilter:grayscale(33%);';
+            root.style.setProperty('--color-background','#F5F5F5');
+          }
+          if (root.style.getPropertyValue('--color-text') == 'black') {
+            root.style.setProperty('--color-text','#F5F5F5');
+          }
+          else {
+            root.style.setProperty('--color-text','black');
+          }     
+          if (root.style.getPropertyValue('--darkfilter') == 'grayscale(0%)') {
+            root.style.setProperty('--darkfilter','grayscale(33%)');
+          }
+          else {
+            root.style.setProperty('--darkfilter','grayscale(0%)');
           }
         }
     }
