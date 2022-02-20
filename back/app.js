@@ -1,7 +1,11 @@
 const express = require('express');
-
 const app = express();
 const bodyParser = require('body-parser');
+const helmet = require('helmet')
+const path = require('path');
+const mysql = require('mysql')
+const mysql2 = require('mysql2');
+require('dotenv').config()
 
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(process.env.DBname,process.env.DBlogin,process.env.DBpassword, {
@@ -10,25 +14,22 @@ const sequelize = new Sequelize(process.env.DBname,process.env.DBlogin,process.e
   logging: false,// true pour voir les requêtes de l'ORM
 });
 
-const exports = module.exports = {};
+var exports = module.exports = {};
 exports.sequelize = sequelize;
 
-//const mongoose = require('mongoose');
-const path = require('path');
-//const helmet = require('helmet');
-require('dotenv').config()
+try {
+  sequelize.authenticate();
+  console.log('Connecté à la base de données MySQL!');
+} catch (error) {
+  console.error('Impossible de se connecter, erreur suivante :', error);
+}
 
-const saucesRoutes = require('./routes/sauces');
+//sequelize.query("SELECT * FROM compte;").then(([resultat,metadata]) => {console.log(resultat);})
+
+//const saucesRoutes = require('./routes/sauces');
 const userRoutes = require('./routes/user');
-//const { Sequelize } = require('sequelize');
 
-//mongoose.connect(process.env.DBconnect,
-//  { useNewUrlParser: true,
-//    useUnifiedTopology: true })
-//  .then(() => console.log('Connexion à MongoDB réussie !'))
-//  .catch(() => console.log('Connexion à MongoDB échouée !'));
-
-//app.use(helmet());
+app.use(helmet());
 
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -40,7 +41,13 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
-app.use('/api/sauces', saucesRoutes);
+//app.use('/api/sauces', saucesRoutes);
 app.use('/api/auth', userRoutes);
+
+const db = {};
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;
 
 module.exports = app;

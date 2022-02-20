@@ -1,4 +1,3 @@
-/*
 const Sequelize = require('sequelize');
 const sequelize = new Sequelize(process.env.DBname,process.env.DBlogin,process.env.DBpassword, {
   host: 'localhost',
@@ -8,4 +7,3 @@ const sequelize = new Sequelize(process.env.DBname,process.env.DBlogin,process.e
 
 var exports = module.exports = {};
 exports.sequelize = sequelize;
-*/

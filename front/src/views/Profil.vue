@@ -2,10 +2,15 @@
     <form>
         <input type="file" id="file" accept=".jpg, .png, .webp" @change="displayAvatar()">
         <label id="avatar" for="file">
+            <!-- Si l'utilisateur a déjà un avatar -->
             <img v-if="compte.avatar == true" :src="require('../assets/profiles/'+compte.id+'.webp')" alt="portrait" title="avatar"/>
+            <!-- Si pas d'avatar, image générique -->
             <img v-else src='../assets/profiles/0.webp' alt="portrait" title="avatar"/>
         </label>
-        <button v-if="formulaire.bouton_avatar == true" @click="supprimerPhoto()" class="smallbutton" tabindex="0" title="supprimer photo"><img src='../assets/delete.svg' alt="supprimer photo"/></button>
+        <!-- Afficher le bouton de suppression de l'image selon le booleen -->
+        <div class="bottom">
+            <button v-if="formulaire.bouton_avatar == true" @click="supprimerPhoto()" class="smallbutton" tabindex="0" title="supprimer photo"><img src='../assets/delete.svg' alt="supprimer photo"/></button>
+        </div>
         <div class="retour">{{ message.avatar }}</div>
         <input @keyup="verificationEmail()" type="email" placeholder="Email" v-model="formulaire.email" required />
         <div class="retour">{{ message.email }}</div>
@@ -31,7 +36,7 @@ data() {
                                 nom:'Homer Simpson',
                                 email:'homersimpson@test.com',
                                 avatar:false,
-                                admin:true
+                                admin:false
                             },
                 formulaire: {
                                 modifier_avatar:false,
@@ -168,7 +173,7 @@ methods: {
             if (this.formulaire.nom != this.compte.nom) {
                 nom = this.compte.nom;
             }
-            // vérification modifications effectives
+            // vérification minimum 1 modification
             if ((email == '') && (this.formulaire.password == '') && (nom == '') && (this.formulaire.modifier_avatar == false)) {
                 this.message.valider = 'Pas de modifications';
                 return false;
@@ -185,8 +190,11 @@ methods: {
                     modifier_avatar:this.formulaire.modifier_avatar,
                     fichier:fichier
                 }
+                // envoie des données
                 console.table(connexion);
                 this.message.valider = '';
+                this.formulaire.password == '';
+                this.formulaire.confirmer == '';
             }
             else {
                 this.message.valider = 'Le formulaire est invalide';
@@ -225,9 +233,18 @@ methods: {
     }
 }
 </script>
+
+<style scoped>
+/* *{
+    background-color : red;
+    font-weight: bolder;
+    font-size:10em;
+}
+*/
+</style>
 <style lang="scss">
 form {
-    text-align: center;
+    text-align:center;
     width:min-content;
     margin:auto;
     input{
@@ -239,6 +256,7 @@ form {
         margin:2em auto;
     }
 }
+
 #avatar img {
     width:22em;
     height:22em;

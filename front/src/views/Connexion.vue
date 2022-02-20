@@ -78,6 +78,30 @@ methods: {
             if ((this.verificationEmail() == true) && (this.verificationPassword() == true)) {
                 const connexion = {email:this.email,password:this.password}
                 console.table(connexion);
+                this.axios.post('http://localhost:3000/api/auth/login',connexion).then((reponse)=>{
+                    console.log('ok',reponse);
+                })
+                .catch((error) => {
+                    console.log('erreur',error);
+                })
+                    /*
+                    fetch("http://localhost:3000/api/auth/login",{
+                        method: "POST",
+                        headers: {
+                            'Accept': 'application/json',
+                            'Content-Type':'application/json'
+                        },  
+                        body: JSON.stringify(connexion)
+                    })
+                        .then(function(reponse){if (reponse){return reponse.json();}})
+                            .catch(function(erreur){alert(erreur+"\n\nLe serveur ne répond pas");})
+                        .then(function(reponse)
+                            {
+                                console.log('test');
+                                console.log(reponse);
+                            }
+                        )
+                        */
             }
         }
     }
@@ -87,12 +111,5 @@ methods: {
 form input{
     margin-top:1em;
     font-size:1.7em;
-}
-
-.retour {
-    margin:2em auto;
-    white-space: pre;
-    font-weight:bold;
-    color:#FF4D4D;
 }
 </style>

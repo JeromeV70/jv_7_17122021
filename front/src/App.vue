@@ -33,23 +33,23 @@ methods: {
         },
         nightMode() {
           let root = document.documentElement;
-          if (root.style.getPropertyValue('--color-background') == '#F5F5F5') {
-            root.style.setProperty('--color-background','black');
-          }
-          else {
+          if (root.style.getPropertyValue('--color-background') == 'black') {
             root.style.setProperty('--color-background','#F5F5F5');
           }
-          if (root.style.getPropertyValue('--color-text') == 'black') {
-            root.style.setProperty('--color-text','#F5F5F5');
-          }
           else {
+            root.style.setProperty('--color-background','black');
+          }
+          if (root.style.getPropertyValue('--color-text') == '#F5F5F5') {
             root.style.setProperty('--color-text','black');
-          }     
-          if (root.style.getPropertyValue('--darkfilter') == 'grayscale(0%)') {
-            root.style.setProperty('--darkfilter','grayscale(33%)');
           }
           else {
+            root.style.setProperty('--color-text','#F5F5F5');
+          }     
+          if (root.style.getPropertyValue('--darkfilter') == 'grayscale(33%)') {
             root.style.setProperty('--darkfilter','grayscale(0%)');
+          }
+          else {
+            root.style.setProperty('--darkfilter','grayscale(33%)');
           }
         }
     }
@@ -75,7 +75,7 @@ $color-button:lightgrey;
 
 #logo {
   font-weight: bolder;
-  font-size:4em;
+  font-size:3em;
   margin-bottom:0.5em;
   img {
     height:2em;
@@ -94,7 +94,7 @@ nav {
     }
   }
   .bigbutton {
-    margin: 0.25em 1em;
+    margin: 0.25em 0.8em;
   }
 }
 </style>

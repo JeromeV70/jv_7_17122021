@@ -1,6 +1,7 @@
-const mongoose = require('mongoose');
+/*
+const Sequelize = require('sequelize');
 
-const saucesSchema = mongoose.Schema({
+const saucesSchema = sequelize.Schema({
   name: { type: String, required: true },
   manufacturer: { type: String, required: true },
   description: { type: String, required: true },
@@ -14,4 +15,5 @@ const saucesSchema = mongoose.Schema({
   usersDisliked: { type: Array, required: true },
 });
 
-module.exports = mongoose.model('Sauces', saucesSchema);
+module.exports = sequelize.model('Sauces', saucesSchema);
+*/
