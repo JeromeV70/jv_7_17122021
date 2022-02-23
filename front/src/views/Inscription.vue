@@ -7,27 +7,30 @@
         <input @keyup="verificationNom()" id="nom" type="text" placeholder="Prénom Nom" v-model="nom" required />
         <div class="retour">{{ message.nom }}</div>
         <button id="envoi" class="bigbutton" @click="envoi()"><img src='../assets/valid.svg' alt="valider"/></button>
+        <div class="retour">{{ message.valider }}</div>
     </form>
 </template>
 <script>
 export default {
 name:"app",
 data() {
-  return {
+    return {
+        email:'',
+        password:'',
+        nom:'',
+        message:{
             email:'',
             password:'',
             nom:'',
-            message:{
-                        email:'',
-                        password:'',
-                        nom:''
-                    }
+            valider:''
         }
+    }
 },
 methods: {
         verificationEmail() {
             let validation = true;
             this.message.email = '';
+            this.message.valider = '';
             if ((/\S{2,40}@\S{2,40}\.\S{2,10}/.test(this.email)==false) || this.email.length > 50) {
                 validation = false;
                 this.message.email = 'L\'adresse e-mail doit comporter un arobase et un point.';
@@ -41,6 +44,7 @@ methods: {
             let chiffre,minuscule,majuscule,symbole,longueur;
             let validation = true;
             this.message.password = '';
+            this.message.valider = '';
             if (/[0-9]{1,}/.test(this.password)==false) {
                 validation = false;
                 chiffre = '\n1 chiffre';
@@ -74,6 +78,7 @@ methods: {
         verificationNom() {
             let validation = true;
             this.message.nom = '';
+            this.message.valider = '';
             if ((/.{2,}/.test(this.nom)==false) || (this.nom.length > 30)) {
                 validation = false;
                 this.message.nom = 'Prénom Nom : entre 2 et 30 caractères';
@@ -87,12 +92,54 @@ methods: {
             if ((this.verificationEmail() == true) && (this.verificationPassword() == true) && (this.verificationNom() == true)) {
                 const connexion = {email:this.email,password:this.password,nom:this.nom}
                 console.table(connexion);
+                this.message.valider = '';
+            }
+            else {
+                this.message.valider = "Le formulaire est invalide";
             }
         }
-    },
+    }
 }
 </script>
+<style lang="scss" scoped>
 
-<style>
+$color-active:orange;
+$color-vote:#FFD580;
+$color-shadow:grey;
+$color-button:lightgrey;
 
+form {
+    text-align:center;
+    width:min-content;
+    margin:auto;
+    input{
+        display:block;
+        font-size:1.7em;
+        border-radius: 0.2em;
+        margin-top:1em;
+        font-size:1.7em;
+    }
+    .bigbutton {
+        margin:2em auto;
+    }
+}
+
+// boutons de validation, création et liens
+.bigbutton {
+    display:flex;
+    justify-content: center;
+    border:none;
+    border-radius: 0.3em;
+    background-color:$color-button;
+    height:3em;
+    width:3em;
+    padding:0;
+    &:active {
+        background-color:$color-active;
+    }
+    img {
+            height:2em;
+            margin:auto;
+    }
+}
 </style>

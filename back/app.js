@@ -26,7 +26,7 @@ try {
 
 //sequelize.query("SELECT * FROM compte;").then(([resultat,metadata]) => {console.log(resultat);})
 
-//const saucesRoutes = require('./routes/sauces');
+const forumRoutes = require('./routes/forum');
 const userRoutes = require('./routes/user');
 
 app.use(helmet());
@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 app.use(bodyParser.json());
 
 app.use('/images', express.static(path.join(__dirname, 'images')));
-//app.use('/api/sauces', saucesRoutes);
+app.use('/api/forum', forumRoutes);
 app.use('/api/auth', userRoutes);
 
 const db = {};

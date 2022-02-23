@@ -45,7 +45,13 @@
         </p>
     </div>
 </template>
-<style lang="scss">
+<style lang="scss" scoped>
+
+$color-active:orange;
+$color-vote:#FFD580;
+$color-shadow:grey;
+$color-button:lightgrey;
+
 #legal {
     margin-left:1em;
 }
@@ -54,5 +60,23 @@
 }
 p {
     text-align: left;
+}
+// boutons de validation, création et liens
+.bigbutton {
+    display:flex;
+    justify-content: center;
+    border:none;
+    border-radius: 0.3em;
+    background-color:$color-button;
+    height:3em;
+    width:3em;
+    padding:0;
+    &:active {
+        background-color:$color-active;
+    }
+    img {
+            height:2em;
+            margin:auto;
+    }
 }
 </style>

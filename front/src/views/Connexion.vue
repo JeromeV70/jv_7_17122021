@@ -17,15 +17,15 @@
 export default {
 name:"app",
 data() {
-  return {
-            password:'', 
+    return {
+        password:'',
+        email:'',
+        message:{
+            connexion:'Vous êtes déconnecté.',
             email:'',
-            message:{
-                        connexion:'Vous êtes déconnecté.',
-                        email:'',
-                        password:''
-                    }
-          }
+            password:''
+        }
+    }
 },
 methods: {
         verificationEmail() {
@@ -79,37 +79,73 @@ methods: {
                 const connexion = {email:this.email,password:this.password}
                 console.table(connexion);
                 this.axios.post('http://localhost:3000/api/auth/login',connexion).then((reponse)=>{
-                    console.log('ok',reponse);
+                    // on récupère le token d'authentification pour les futures requêtes
+                    this.axios.defaults.headers.common['Authorization'] = reponse.data.token;
+                    this.$store.state.token = {'Authorization': 'Bearer '+reponse.data.token};
+                    // On enregistre les infos du compte dans la data globale
+                    this.$store.state.compte.id = reponse.data.id;
+                    this.$store.state.compte.nom = reponse.data.nom;
+                    this.$store.state.compte.email = reponse.data.email;
+                    this.$store.state.compte.avatar = reponse.data.avatar;
+                    this.$store.state.compte.admin = reponse.data.admin;
+                    // redirection vers la page forum
+                    this.$router.push('/forum');
                 })
                 .catch((error) => {
                     console.log('erreur',error);
                 })
-                    /*
-                    fetch("http://localhost:3000/api/auth/login",{
-                        method: "POST",
-                        headers: {
-                            'Accept': 'application/json',
-                            'Content-Type':'application/json'
-                        },  
-                        body: JSON.stringify(connexion)
-                    })
-                        .then(function(reponse){if (reponse){return reponse.json();}})
-                            .catch(function(erreur){alert(erreur+"\n\nLe serveur ne répond pas");})
-                        .then(function(reponse)
-                            {
-                                console.log('test');
-                                console.log(reponse);
-                            }
-                        )
-                        */
             }
         }
     }
 }
 </script>
-<style lang="scss">
-form input{
-    margin-top:1em;
-    font-size:1.7em;
+<style lang="scss" scoped>
+
+$color-active:orange;
+$color-vote:#FFD580;
+$color-shadow:grey;
+$color-button:lightgrey;
+
+form {
+    text-align:center;
+    width:min-content;
+    margin:auto;
+    input{
+        display:block;
+        font-size:1.7em;
+        border-radius: 0.2em;
+        margin-top:1em;
+        font-size:1.7em;
+    }
+    .bigbutton {
+        margin:2em auto;
+    }
+}
+.bigbutton {
+    display:flex;
+    justify-content: center;
+    border:none;
+    border-radius: 0.3em;
+    background-color:$color-button;
+    height:3em;
+    width:3em;
+    padding:0;
+    &:active {
+        background-color:$color-active;
+    }
+    img {
+            height:2em;
+            margin:auto;
+    }
+}
+// message d'alerte
+.retour {
+    font-family: Ubuntu;
+    display:block;
+    margin:0.5em auto;
+    white-space: pre-wrap;
+    font-weight:bold;
+    color:#FF4D4D;
+    text-align: center;
 }
 </style>

@@ -1,5 +1,8 @@
 <template>
   <main>
+    <div v-if="$store.state.loader == true" class="loader">
+      <img src='./assets/icon.svg' alt='loader' title='loader' />
+    </div>
     <div id="logo"><img src='./assets/icon.svg' alt='logo' title='groupomania' />Groupomania</div>
     <nav>
       <router-link @click="connect()" to="/connexion" class="bigbutton" :title="title()"><img v-if="login == false" src='./assets/login.svg' alt="connexion"/><img v-else src='./assets/exit.svg' alt="déconnexion"/></router-link>
@@ -56,27 +59,67 @@ methods: {
 }
 </script>
 <style lang="scss">
+// Si modification du root, changer en conséquence la fonction nightMode() dans App.vue
+:root {
+--color-background:#F5F5F5;
+--color-text:black;
+--darkfilter:grayscale(0%);
+}
+
+html {
+  background-color:var(--color-background);
+}
+
+#app {
+  color: var(--color-text);
+  padding-bottom:100%;
+  font-family: Ubuntu, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-align: center;
+  font-size:1em;
+}
+
+.loader {
+  position:fixed;
+  left:0em;
+  top:0em;
+  z-index:1;
+  width:100%;
+  height:100%;
+  background-color:grey;
+  opacity:0.9;
+  padding:auto;
+  img {
+    width:16em;
+    position:relative;
+    top:calc(50% - 8em);
+    animation: loader 2s linear 0s infinite;
+    -webkit-animation: loader 2s linear 0s infinite;
+    @keyframes loader {
+      0% {transform: rotate(0deg);}
+      100% {transform: rotate(360deg);}
+    }
+    @-webkit-keyframes loader {
+      0% {transform: rotate(0deg);}
+      100% {transform: rotate(360deg);}
+    }
+  }
+}
+</style>
+<style lang="scss" scoped>
 
 $color-active:orange;
 $color-vote:#FFD580;
 $color-shadow:grey;
 $color-button:lightgrey;
 
-#app {
-  font-family: Ubuntu, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: var(--color-text);
-  background-color:var(--color-background);
-  font-size:1em;
-  padding-bottom:100%;
-}
-
 #logo {
   font-weight: bolder;
   font-size:3em;
   margin-bottom:0.5em;
+  font-family: Ubuntu;
+  text-align: center;
   img {
     height:2em;
     vertical-align: middle;
@@ -93,8 +136,24 @@ nav {
       background-color:$color-vote;
     }
   }
+  // boutons de validation, création et liens
   .bigbutton {
+    display:flex;
+    justify-content: center;
+    border:none;
+    border-radius: 0.3em;
+    background-color:$color-button;
+    height:3em;
+    width:3em;
+    padding:0;
     margin: 0.25em 0.8em;
+    &:active {
+        background-color:$color-active;
+    }
+    img {
+            height:2em;
+            margin:auto;
+    }
   }
 }
 </style>

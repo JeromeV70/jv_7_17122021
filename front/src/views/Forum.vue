@@ -1,27 +1,28 @@
 <template>
     <section>
+        <div>{{ $store.state.compte.id }}</div>
         <!-- creation d'un nouvel article -->
         <div class="box-bouton-retour">
-            <button @click="displayCreation()" class="bigbutton" tabindex="0" title="nouvel article"><img src='../assets/plus.svg' alt="creer"/></button>
+            <button @click="afficherArticle()" class="bigbutton" tabindex="0" title="nouvel article"><img src='../assets/plus.svg' alt="creer"/></button>
         </div>
-        <div v-if="new_article.display==true" class="article-redaction">
+        <div v-if="nouveau_article.display==true" class="article-redaction">
             <!-- titre du nouvel article (facultatif)-->
-            <input type="text" placeholder="Titre" v-model="new_article.title" @keyup="verificationTitre()" />
-            <!-- image du nouvel article (facultatif), displayImage affiche la preview -->
-            <input v-show="false" type="file" id="file" accept=".jpg, .png, .webp, .gif" @change="displayImage()" >
+            <input type="text" placeholder="Titre" v-model="nouveau_article.title" @keyup="verificationTitre()" />
+            <!-- image du nouvel article (facultatif), afficherImage affiche la preview -->
+            <input v-show="false" type="file" id="file" accept=".jpg, .png, .webp, .gif" @change="afficherImage()" >
             <label id="image_article" for="file">
                 <img @keyup.enter="enter()" src='../assets/file-image.svg' alt='image .webp .gif .png .jpg' tabindex="0" title="&#10;.webp&#10;.gif&#10;.png&#10;.jpg" />
             </label>
             <!-- Afficher le bouton de suppression de l'image si elle est chargée dans une variable -->
             <div class="bottom">
-                <button v-if="new_article.image != ''" @click="supprimerImage()" class="smallbutton" tabindex="0" title="supprimer photo"><img src='../assets/delete.svg' alt="supprimer photo"/></button>
+                <button v-if="nouveau_article.image != ''" @click="supprimerImage()" class="smallbutton" tabindex="0" title="supprimer photo"><img src='../assets/delete.svg' alt="supprimer photo"/></button>
             </div>
             <!-- texte du nouvel article -->
-            <textarea placeholder="Message" v-model="new_article.text" @keyup="verificationTexte()" ></textarea>
+            <textarea placeholder="Message" v-model="nouveau_article.text" @keyup="verificationTexte()" ></textarea>
             <!-- bouton validation du nouvel article -->
             <div class="box-bouton-retour">
-                <div @click="sendCreation()"><button class="bigbutton" abindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button></div>
-                <div class="retour">{{ message.new_article }}</div>
+                <div @click="envoiArticle()"><button class="bigbutton" abindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button></div>
+                <div class="retour">{{ message.nouveau_article }}</div>
             </div>
         </div>
 
@@ -45,21 +46,21 @@
                 <div class="texte">{{ article.texte }}</div>
                 <!-- bloc boutons de vote, commentaires, signalement, suppression. Affichage de boutons supplémentaires pour l'admin-->
                 <div class="bottom">
-                    <button @click="vote(article,1,true)" :class="'smallbutton '+feedback(article.feedback,1)" tabindex="0" title="upvote"><img src='../assets/up.svg' alt="like_button"/>{{ article.upvote }}</button>
-                    <button @click="vote(article,1,false)" :class="'smallbutton '+feedback(article.feedback,2)" tabindex="0" title="downvote"><img src='../assets/down.svg' alt="like_button"/>{{ article.downvote }}</button>
-                    <button @click="displayComment(article.id_article)" class="smallbutton" tabindex="0" title="commentaires"><img src='../assets/comment.svg' alt="commentaires"/>{{ article.commentaire }}</button>
-                    <button @click="displaySignal(article.id_article,null)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ article.signalement }}</button>
-                    <button v-if="admin == true" @click="conforme(article.id_article,1)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
-                    <button v-if="(id == article.id_compte) || (admin == true)" @click="erase(article.id_article,1)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
-                    <button v-if="admin == true" @click="kill(article.id_compte)" class="smallbutton" tabindex="0" title="bannir"><img src='../assets/dead.svg' alt="bannir"/></button>
+                    <button @click="vote(article.id_article,0,1)" :class="'smallbutton '+feedback(article.id_article,0,1)" tabindex="0" title="upvote"><img src='../assets/up.svg' alt="vote_button"/>{{ article.upvote }}</button>
+                    <button @click="vote(article.id_article,0,0)" :class="'smallbutton '+feedback(article.id_article,0,0)" tabindex="0" title="downvote"><img src='../assets/down.svg' alt="vote_button"/>{{ article.downvote }}</button>
+                    <button @click="afficherCommentaire(article.id_article)" class="smallbutton" tabindex="0" title="commentaires"><img src='../assets/comment.svg' alt="commentaires"/>{{ article.commentaire }}</button>
+                    <button @click="afficherSignalement(article.id_article,null)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ article.signalement }}</button>
+                    <button v-if="$store.state.compte.admin == true" @click="conforme(article.id_article,1)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
+                    <button v-if="($store.state.compte.id == article.id_compte) || ($store.state.compte.admin == true)" @click="supprimerDocument(article.id_article,1)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
+                    <button v-if="$store.state.compte.admin == true" @click="kill(article.id_compte)" class="smallbutton" tabindex="0" title="bannir"><img src='../assets/dead.svg' alt="bannir"/></button>
                 </div>
                 <!-- bloc de signalement article, affiché si le bouton signalement est cliqué -->
                 <div v-if="(signal.id_article == article.id_article) && (signal.id_commentaire == null)" class="signal" :id="'signal'+article.id_article">
-                    <div v-if="admin == false">
+                    <div v-if="$store.state.compte.admin == false">
                         <div v-for="(motif, index) in motifsSignalement" :key="index">
                             <div class="signal-element"><input type=radio :id="motif" name="signal" :value=index /><label :for=motif>{{motif}}</label></div>
                         </div>
-                        <button @click="sendSignal()" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
+                        <button @click="envoiSignalement()" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
                     </div>
                     <div v-else>
                         <!-- Si admin, afficher les signalements de l'article si le bouton signalement est cliqué-->
@@ -76,9 +77,9 @@
             <div v-if="afficher_commentaires == article.id_article">
                 <!-- rédaction d'un nouveau commentaire -->
                 <div class="commentaire-redaction">
-                    <textarea placeholder="Ecrire un commentaire..." tabindex="0" v-model="new_comment" @keyup="verificationCommentaire()" ></textarea>
+                    <textarea placeholder="Ecrire un commentaire..." tabindex="0" v-model="nouveau_commentaire" @keyup="verificationCommentaire()" ></textarea>
                     <div class="box-bouton-retour">
-                        <button @click="sendComment(article.id_article)" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
+                        <button @click="envoiCommentaire(article.id_article)" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
                         <div class="retour">{{ message.commentaire }}</div>
                     </div>
                 </div>
@@ -96,20 +97,20 @@
                     <div class="texte">{{ com.message }}</div>
                     <!-- bloc boutons de vote, commentaires, signalement, suppression -->
                     <div class="bottom">
-                        <button @click="vote(com,2,true)" :class="'smallbutton '+feedback(com.feedback,1)" tabindex="0" title="upvote"><img src='../assets/up.svg' alt="like_button"/>{{ com.upvote }}</button>
-                        <button @click="vote(com,2,false)" :class="'smallbutton '+feedback(com.feedback,2)" tabindex="0" title="downvote"><img src='../assets/down.svg' alt="like_button"/>{{ com.downvote }}</button>
-                        <button @click="displaySignal(com.id_article,com.id_commentaire)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ article.signalement }}</button>
-                        <button v-if="admin == true" @click="conforme(com.id_commentaire,2)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
-                        <button v-if="id == com.id_compte || (admin == true)" @click="erase(com.id_commentaire,2)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
-                        <button v-if="admin == true" @click="kill(com.id_compte)" class="smallbutton" tabindex="0" title="bannir"><img src='../assets/dead.svg' alt="bannir"/></button>
+                        <button @click="vote(com.id_commentaire,1,1)" :class="'smallbutton '+feedback(com.id_commentaire,1,1)" tabindex="0" title="upvote"><img src='../assets/up.svg' alt="vote_button"/>{{ com.upvote }}</button>
+                        <button @click="vote(com.id_commentaire,1,0)" :class="'smallbutton '+feedback(com.id_commentaire,1,0)" tabindex="0" title="downvote"><img src='../assets/down.svg' alt="vote_button"/>{{ com.downvote }}</button>
+                        <button @click="afficherSignalement(com.id_article,com.id_commentaire)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ article.signalement }}</button>
+                        <button v-if="$store.state.compte.admin == true" @click="conforme(com.id_commentaire,2)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
+                        <button v-if="$store.state.compte.id == com.id_compte || ($store.state.compte.admin == true)" @click="supprimerDocument(com.id_commentaire,2)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
+                        <button v-if="$store.state.compte.admin == true" @click="kill(com.id_compte)" class="smallbutton" tabindex="0" title="bannir"><img src='../assets/dead.svg' alt="bannir"/></button>
                     </div>
                     <!-- bloc de signalement commentaire, affiché si le bouton signalement est cliqué -->
                     <div v-if="(signal.id_article == article.id_article) && (signal.id_commentaire == com.id_commentaire)" class="signal" :id="'signal'+com.id_commentaire">
-                        <div v-if="admin == false">
+                        <div v-if="$store.state.compte.admin == false">
                             <div v-for="(motif, index) in motifsSignalement" :key="index">
                                 <div class="signal-element"><input type=radio :id="motif" name="signal" :value=index /><label :for=motif>{{motif}}</label></div>
                             </div>
-                            <button @click="sendSignal()" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
+                            <button @click="envoiSignalement()" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
                         </div>
                         <div v-else>
                             <!-- Si admin, afficher les signalements du commentaire si le bouton signalement est cliqué-->
@@ -132,101 +133,23 @@ name:"app",
 //components: { signalement },
 data() {
   return {
-        id:1,
-        admin:false,
         afficher_commentaires:'',
-        new_comment:'',
-            signal: {
-                        id_article:null,
-                        id_commentaire:null
-                    },
-        new_article: {
-                        display:false,
-                        title:'',
-                        image:'',
-                        text:''
-                    },
-            message:{
-                        new_article:'',
-                        commentaire:''
-                    },
-        articles:[
-                    {
-                        id_article:49828942357,
-                        id_compte:2,
-                        avatar:true,
-                        nom_auteur:'Omer Simpson',
-                        date:1642519961000,
-                        titre:'Un drôle de chat',
-                        image:'cat',
-                        texte:'Le Chat domestique (Felis silvestris catus) est la sous-espèce issue de la domestication du Chat sauvage (Felis silvestris), mammifère carnivore de la famille des Félidés. Il est l’un des principaux animaux de compagnie et compte aujourd’hui une cinquantaine de races différentes reconnues par les instances de certification. Dans de très nombreux pays, le chat entre dans le cadre de la législation sur les carnivores domestiques à l’instar du chien et du furet. Essentiellement territorial, le chat est un prédateur de petites proies comme les rongeurs ou les oiseaux. Les chats ont diverses vocalisations dont les ronronnements, les miaulements, les feulements ou les grognements, bien qu’ils communiquent principalement par des positions faciales et corporelles et des phéromones. Selon les résultats de travaux menés en 2006 et 2007, le chat domestique est une sous-espèce du chat sauvage issue d’ancêtres appartenant à la sous-espèce du chat sauvage d’Afrique (Felis silvestris lybica). Les premières domestications auraient eu lieu il y a 8 000 à 10 000 ans au Néolithique dans le Croissant fertile, époque correspondant au début de la culture de céréales et à l’engrangement de réserves susceptibles d’être attaquées par des rongeurs, le chat devenant alors pour l’Homme un auxiliaire utile se prêtant à la domestication.',
-                        upvote:25,
-                        downvote:9,
-                        commentaire:6,
-                        signalement:0,
-                        feedback:true
-                    },
-                    {
-                        id_article:49828942358,
-                        id_compte:3,
-                        avatar:true,
-                        nom_auteur:'Marge Simpson',
-                        date:1642529961000,
-                        titre:'Un drôle de chien',
-                        image:'dog',
-                        texte:'Le Chien (Canis lupus familiaris) est la sous-espèce domestique de Canis lupus (Loup gris), un mammifère de la famille des Canidés (Canidae), laquelle comprend également le dingo, chien domestique retourné à l\'état sauvage. Le Loup est la première espèce animale à avoir été domestiquée par l\'Homme pour l\'usage de la chasse dans une société humaine paléolithique qui ne maîtrise alors ni l\'agriculture ni l\'élevage. La lignée du chien s\'est différenciée génétiquement de celle du Loup gris il y a environ 100 000 ans1, et les plus anciens restes confirmés de la lignée des chiens modernes sont vieux, selon les sources, de 33 000 ans2,3 ou de 12 000 ans4 ; le bœuf5 (voir Domestication de Bos taurus) et la chèvre seront domestiquées vers −10 000. Depuis la Préhistoire, le chien a accompagné l\'être humain durant toute sa phase de sédentarisation, marquée par l\'apparition des premières civilisations agricoles. C\'est à ce moment qu\'il a acquis la capacité de digérer l\'amidon, et que ses fonctions d\'auxiliaire d\'Homo sapiens se sont étendues. Ces nouvelles fonctions ont entraîné une différenciation accrue de la sous-espèce et l\'apparition progressive de races canines identifiables. Le chien est aujourd\'hui utilisé à la fois comme animal de travail et comme animal de compagnie. Son instinct de meute, sa domestication précoce et les caractéristiques comportementales qui en découlent lui valent familièrement le surnom de « meilleur ami de l\'Homme. ',
-                        upvote:12,
-                        downvote:4,
-                        commentaire:6,
-                        signalement:0,
-                        feedback:null
-                    },
-                    {
-                        id_article:49828942359,
-                        id_compte:2,
-                        avatar:true,
-                        nom_auteur:'Homer Simpson',
-                        date:1642529962000,
-                        titre:'Où est mon donut ? Je l\'ai cherché partout cet après-midi il est nul part !',
-                        image:'',
-                        texte:'Quelqu\'un a-t-il vu mon donut, j\'ai très faim !',
-                        upvote:12,
-                        downvote:4,
-                        commentaire:6,
-                        signalement:0,
-                        feedback:false
-                    },
-                    {
-                        id_article:49828942360,
-                        id_compte:7,
-                        avatar:true,
-                        nom_auteur:'Apu Nahasapeemapetilon',
-                        date:1642529969000,
-                        titre:'Un drôle d\'oiseau',
-                        image:'bird',
-                        texte:'C\'est un oiseau qui marche dans la neige',
-                        upvote:10,
-                        downvote:2,
-                        commentaire:6,
-                        signalement:0,
-                        feedback:null
-                    },
-                    {
-                        id_article:49828942361,
-                        id_compte:4,
-                        avatar:true,
-                        nom_auteur:'Lisa Simpson',
-                        date:1642529970000,
-                        titre:'Un drôle de cheval',
-                        image:'horse',
-                        texte:'Voici une image drôle d\'un cheval jouant avec un ballon XD',
-                        upvote:4,
-                        downvote:0,
-                        commentaire:6,
-                        signalement:0,
-                        feedback:null
-                    }
-                ],
+        nouveau_commentaire:'',
+        signal: {
+            id_article:null,
+            id_commentaire:null
+        },
+        nouveau_article: {
+            display:false,
+            title:'',
+            image:'',
+            text:''
+        },
+        message: {
+            nouveau_article:'',
+            commentaire:''
+        },
+        articles:[],
         commentaires:
                     [
                         {id_commentaire:1902859275,id_compte:4,avatar:true,id_article:49828942361,nom:'Lisa Simpson',date:1643902543000,message:'cet animal est vraiment très drôle !',upvote:3,downvote:0,signalement:0,feedback:true},
@@ -243,48 +166,48 @@ data() {
                         {id_document:1786943824,type:2,motif:3,date:1644710787683,id_compte:2},
                         {id_document:49828942357,type:1,motif:0,date:1644710827555,id_compte:3}
                     ],
+            votes: {
+                articles:[],
+                commentaires:[]
+            },
         motifsSignalement:['Illégal','Usurpation','Harcèlement','Spam','Droits','Piratage','Autre']
         }
 },
 methods: {
-        test() {
-            //let encrypted = CryptoJS.AES.encrypt('testestestes', '12334');
-            //console.log(encrypted)
-        },
         // pour ouvrir l'explorateur de fichiers avec le clavier et choisir une image
         enter() {
             document.querySelector('#image_article img').click();
         },
         // affichage du bloc de rédaction article
-        displayCreation() {
-                this.new_article.display = !this.new_article.display;
-                this.new_article.title = '';
-                this.new_article.image = '';
-                this.new_article.text = '';
+        afficherArticle() {
+                this.nouveau_article.display = !this.nouveau_article.display;
+                this.nouveau_article.title = '';
+                this.nouveau_article.image = '';
+                this.nouveau_article.text = '';
         },
         // pour chaque pression de touche lors de la rédaction d'un article ou commentaire, vérification de la longueur du texte.
         verificationTitre() {
-                if (this.new_article.title.length > 100)
+                if (this.nouveau_article.title.length > 100)
                     {
-                        this.message.new_article = 'Titre trop long, max 100 caractères';
+                        this.message.nouveau_article = 'Titre trop long, max 100 caractères';
                         return false;
                     }
                     else {
-                        this.message.new_article = '';
+                        this.message.nouveau_article = '';
                     }
         },
         verificationTexte() {
-                if (this.new_article.text.length > 2000)
+                if (this.nouveau_article.text.length > 2000)
                     {
-                        this.message.new_article = 'Texte trop long, max 2000 caractères';
+                        this.message.nouveau_article = 'Texte trop long, max 2000 caractères';
                         return false;
                     }
                     else {
-                        this.message.new_article = '';
+                        this.message.nouveau_article = '';
                     }
         },
         verificationCommentaire() {
-                if (this.new_comment.length > 1000)
+                if (this.nouveau_commentaire.length > 1000)
                     {
                         this.message.commentaire = 'Commentaire trop long, max 1000 caractères';
                         return false;
@@ -294,37 +217,37 @@ methods: {
                     }
         },
         // envoi d'un article
-        sendCreation() {
+        envoiArticle() {
                 if (this.verificationTitre() == false) {
                     return false;
                 }
                 if (this.verificationTexte() == false) {
                     return false;
                 }
-                if ((this.new_article.title == '') && (this.new_article.text == '') && (this.new_article.image == '')) {
+                if ((this.nouveau_article.title == '') && (this.nouveau_article.text == '') && (this.nouveau_article.image == '')) {
                     return false;
                 }
-                this.message.new_article = '';
+                this.message.nouveau_article = '';
                 const article = {
-                    id_compte:this.id,
-                    titre:this.new_article.title,
-                    image:this.new_article.image,
-                    texte:this.new_article.text,
+                    id_compte:this.$store.state.compte.id,
+                    titre:this.nouveau_article.title,
+                    image:this.nouveau_article.image,
+                    texte:this.nouveau_article.text,
                 };
                 console.table(article);
          },
          // envoi d'un commentaire
-        sendComment(id) {
+        envoiCommentaire(id) {
                 if (this.verificationCommentaire() == false) {
                     return false;
                 }
                 this.message.commentaire = '';
-                const commentaire = {id_compte:this.id,id_article:id,texte:this.new_comment,date:Date.now()};
+                const commentaire = {id_compte:this.$store.state.compte.id,id_article:id,texte:this.nouveau_commentaire,date:Date.now()};
                 console.table(commentaire);
-                this.new_comment='';
+                this.nouveau_commentaire='';
         },
         // afficher les commentaires
-        displayComment(id_article) {
+        afficherCommentaire(id_article) {
                 // boucle temporaire pour afficher le bon id article dans les datas, correspondant à la requête (à cause des données en dur)
                 for(const element of this.commentaires)
                 {
@@ -342,7 +265,7 @@ methods: {
                     this.signal.id_commentaire = null;
                 }
          },
-        displaySignal(id_article,id_commentaire,admin) {
+        afficherSignalement(id_article,id_commentaire) {
                 // si les identifiants articles et commentaires sont identiques à ceux déjà chargés en variable, alors les effacer pour fermer l'affichage
                 if ((this.signal.id_article == id_article) && (this.signal.id_commentaire == id_commentaire)){
                 this.signal.id_article = null;
@@ -356,7 +279,7 @@ methods: {
                         this.afficher_commentaires = null;
                     }
                     // Si admin, on récupère les signalements pour les afficher
-                    if (admin == true) {
+                    if (this.$store.state.compte.admin == true) {
                         console.log(id_article,id_commentaire);
                         // SELECT * FROM signalement WHERE id_article = $id_article AND id_commentaire = $id_commentaire;
                     }
@@ -372,21 +295,22 @@ methods: {
             if (code == 5){return 'Piratage'}
             if (code == 6){return 'Autre'}
         },
-        sendSignal() {
+        envoiSignalement() {
             // On récupère le formulaire radios du signalement affiché, et on cherche le bouton sélectionné
             const liste = document.querySelectorAll('.signal input');
             for(let i=0;i<7;i++) {
                 const resultat = liste[i].checked;
                 if (resultat===true) {
-                    const signal = {id_article:this.signal.id_article,id_commentaire:this.signal.id_commentaire,motif:i,id_compte:this.id};
+                    const signal = {id_article:this.signal.id_article,id_commentaire:this.signal.id_commentaire,motif:i,id_compte:this.$store.state.compte.id};
                     console.table(signal);
                     break;
                 }
             }
         },
-        erase(id,type) {
-            const erase = {id_document:id,type:type};// type = 1 : article, type = 2 : commentaire
-            console.table(erase);
+        // effacer un article ou un commentaire
+        supprimerDocument(id,type) {
+            const supprimerDocument = {id_document:id,type:type};// type = 1 : article, type = 2 : commentaire
+            console.table(supprimerDocument);
             let selector = '';
             if (type == 1) {
                     selector = "article";
@@ -398,42 +322,85 @@ methods: {
             }
             document.querySelector(''+selector+'[data-id="'+id+'"]').remove();
         },
-        vote(document,type,feedback) {// type = 1 : article, type = 2 : commentaire
+        // envoi d'un vote up ou down sur un article ou commentaire
+        vote(id_document,type,direction) {// type = 0 : article, type = 1 : commentaire
+
+            // on prépare la requête
+            const vote = {id_document:id_document,type:type,direction:direction};
+            this.axios.post('http://localhost:3000/api/forum/Vote',vote).then((reponse)=>{
+
+            // on choisi la liste article ou commentaire à modifier, selon le document
+            let liste_vote = null;
+            if (type == 0) {
+                liste_vote = this.votes.articles
+            }
+            else {
+                liste_vote = this.votes.commentaire
+            }
+
+                console.log('reponse.data.vote : ');
+                console.table(reponse.data.vote);
+
+                // on supprime le précédent état de vote dans le tableau, s'il existe
+                for (const element of liste_vote) {
+                    if (Object.values(element)[0] == id_document) {
+                        console.table(element);
+                        liste_vote.splice(element,1);
+                    }
+                }
+                // on ajoute le nouvel état de vote du document dans le tableau
+                liste_vote.push(reponse.data);
+                console.log('liste_vote : ');
+                console.table(liste_vote);
+                console.log('votes.articles');
+                console.table(this.votes.articles);
+            })
+            .catch((error) => {
+                console.log('erreur',error);
+            })
+            /*
+            console.log(document.feedback);
             if (document.feedback == feedback){feedback = null}
-            const like = {
-                            id_compte:this.id,
+            const vote = {
+                            id_compte:this.$store.state.compte.id,
                             id_document:Object.values(document)[0],
-                            liked:feedback,
+                            voted:feedback,
                             type:type
                         };
-            console.table(like);
+            console.table(vote);
             document.feedback = feedback;
+            */
         },
-        feedback(feedback,type) {
-            // 1 = bouton like, 2 = bouton dislike
-            if (feedback == true && type == 1){return 'liked'}
-            if (feedback == true && type == 2){return ''}
-            if (feedback == false && type == 1){return ''}
-            if (feedback == false && type == 2){return 'liked'}
-            if (feedback == null){return ''}
+        // afficher l'attribut selon le statut du vote (up, down ou rien)
+        // Type : 0 = article, 1 = commentaire ; Direction : 0 = downvote, 1 = upvote
+        feedback(id_document,type,direction) {
+            let liste_vote = null;
+            // On choisi la liste article ou commentaire selon le document
+            if (type == 0) {
+                liste_vote = this.votes.articles
+            }
+            else {
+                liste_vote = this.votes.commentaire
+            }
+            for (const element of liste_vote) {
+                // si on trouve l'identifiant du document, il y a un vote
+                if (Object.values(element)[0] == id_document) {
+                    // si le vote correspond au bouton à illuminer, on retourne la class qui affiche la sélection du bouton
+                    if (Object.values(element)[1] == direction) {
+                        return 'voted';
+                    }
+                    else {
+                        return '';
+                    }
+                }
+            }
         },
+        // converti les timestamp en date
         date_format(timestamp) {
             const date = new Date(timestamp);
             return date.getDate()+'/'+(date.getMonth()+1)+'/'+date.getFullYear()+' '+date.toLocaleTimeString(timestamp);
         },
-        supprimerImage() {
-            document.querySelector('#image_article>img').src=require('../assets/file-image.svg');
-            this.new_article.image = '';
-            this.message.new_article = 'Image supprimée.';
-        },
-        verificationFichier() {
-            if (document.querySelector('#file').files[0].size > 1050000) {
-                this.supprimerImage();
-                this.message.new_article = "L'image ne doit pas dépasser 1 Mo";
-                return false;
-            }
-        },
-        displayImage() {
+        afficherImage() {
             // en cas d'annulation lors de la sélection du fichier, le fichier n'est pas chargé, il faut donc vérifier sa présence
             if (!document.querySelector('#file').files[0]) {
                 this.supprimerImage();
@@ -444,15 +411,32 @@ methods: {
             }
             const preview = document.querySelector('#image_article>img');
             // placer l'image dans la variable
-            this.new_article.image = document.querySelector('#file').files[0];
+            this.nouveau_article.image = document.querySelector('#file').files[0];
             // supprimer l'image de l'input
             document.querySelector('#file').value = '';
             const reader  = new FileReader();
-            if (this.new_article.image) {reader.readAsDataURL(this.new_article.image)}
+            if (this.nouveau_article.image) {reader.readAsDataURL(this.nouveau_article.image)}
             reader.addEventListener("load", function () {
                 preview.src = reader.result;
             }, false);
-            this.message.new_article = '';
+            this.message.nouveau_article = '';
+        },
+        verificationFichier() {
+            if (document.querySelector('#file').files[0].size > 1050000) {
+                this.supprimerImage();
+                this.message.nouveau_article = "L'image ne doit pas dépasser 1 Mo";
+                return false;
+            }
+        },
+        supprimerImage() {
+            document.querySelector('#image_article>img').src=require('../assets/file-image.svg');
+            this.nouveau_article.image = '';
+            this.message.nouveau_article = 'Image supprimée.';
+        },
+        conforme(id,type) {
+            const conforme = {id_document:id,type:type};// type = 1 : article, type = 2 : commentaire
+            console.table(conforme);
+            this.signalements = '';
         },
         kill(id_compte) {
             // supprimer tous les articles et commentaires du compte banni, sur la page
@@ -482,28 +466,48 @@ methods: {
                 this.commentaires.splice(element,1);
             }
         },
-        conforme(id,type) {
-            const conforme = {id_document:id,type:type};// type = 1 : article, type = 2 : commentaire
-            console.table(conforme);
-            this.signalements = '';
+        chargementArticles: function() {
+                this.axios.get('http://localhost:3000/api/forum/getArticles').then((reponse)=>{
+                //console.log(reponse);
+                // on récupère le token d'authentification pour les futures requêtes
+                // this.axios.defaults.headers.common['Authorization'] = reponse.data.token;
+                //console.table(reponse.data.articles);
+                console.log(this.$store.state.token);
+                console.table(reponse.data.votes);
+                this.articles = reponse.data.articles;
+                this.votes.articles = reponse.data.votes;
+                })
+                .catch((error) => {
+                console.log('erreur',error);
+                })
         }
-    }
+    },
+    created: function() {
+        this.chargementArticles();
+    }/*,
+    mounted: {
+            function() {
+                console.log(this.$store.state.compte.id);
+                this.axios.post('http://localhost:3000/api/auth/login',this.$store.state.compte.id).then((reponse)=>{
+                // on récupère le token d'authentification pour les futures requêtes
+                // this.axios.defaults.headers.common['Authorization'] = reponse.data.token;
+                console.table(reponse);
+                })
+                .catch((error) => {
+                console.log('erreur',error);
+                })
+            }
+    }*/
 }
 </script>
-<style lang="scss">
-
-// Si modification du root, changer en conséquence la fonction nightMode() dans App.vue
-:root {
---color-background:#F5F5F5;
---color-text:black;
---darkfilter:grayscale(0%);
-}
+<style lang="scss" scoped>
 
 $color-active:orange;
 $color-vote:#FFD580;
 $color-shadow:grey;
 $color-button:lightgrey;
 
+// espace de rédaction d'un nouvel article
 .article-redaction {
     border-radius: 0.5em;
     box-shadow: 1px 1px 0.4em $color-shadow;
@@ -567,12 +571,14 @@ article {
     }
 }
 
+// avatar
 .nom img {
     margin:0.15em 0.2em 0 0.2em;
     vertical-align: text-top;
     filter:var(--darkfilter);
 }
 
+// boite du commentaire
 .commentaire {
     .nom img {
         height: 3em;
@@ -589,14 +595,7 @@ article {
     
 }
 
-.commentaire, .commentaire-redaction {
-    text-align: left;
-    border-radius: 0.3em;
-    box-shadow: 1px 1px 0.4em $color-shadow;
-    margin:0.5em auto 0 auto;
-    padding:0.5em;
-    max-width:68em;
-}
+// espace de rédaction d'un nouveau commentaire
 .commentaire-redaction {
     border:none;
     margin:0.5em auto 0 auto;
@@ -612,17 +611,28 @@ article {
     }
 }
 
+.commentaire, .commentaire-redaction {
+    text-align: left;
+    border-radius: 0.3em;
+    box-shadow: 1px 1px 0.4em $color-shadow;
+    margin:0.5em auto 0 auto;
+    padding:0.5em;
+    max-width:68em;
+}
+
+// box contenant l'en-tête de l'article ou du commentaire (nom, avatar, date)
 .top {
     display:flex;
     flex-flow:row wrap;
     justify-content: space-between;
 }
+
+// box contenant les smallbutton (vote, messages, signalement, supprimer, bannir)
 .bottom {
     display:flex;
     flex-flow:row wrap;
     justify-content:center;
 }
-
 
 .signal {
     text-align: left;
@@ -640,6 +650,7 @@ article {
     }
 }
 
+// boutons vote, messages, signalement, supprimer, bannir
 .smallbutton {
     display:flex;
     justify-content:center;
@@ -657,6 +668,7 @@ article {
     }
 }
 
+// boutons de validation, création et liens
 .bigbutton {
     display:flex;
     justify-content: center;
@@ -701,15 +713,18 @@ article {
     max-width:71em;
 }
 
+// message d'alerte
 .retour {
     display:block;
     margin:0.5em auto;
     white-space: pre-wrap;
     font-weight:bold;
     color:#FF4D4D;
+    text-align: center;
 }
 
-.liked {
+// bouton de vote sélectionné
+.voted {
     background-color:$color-vote;
     color:black;
 }

@@ -42,20 +42,13 @@ exports.signup = (req, res, next) => {
   };
 
   exports.login = (req, res, next) => {
-/*
-    const Sequelize = require('sequelize');
-    const sequelize = new Sequelize(process.env.DBname,process.env.DBlogin,process.env.DBpassword, {
-      host: 'localhost',
-      dialect: 'mysql',
-      logging: false,// true pour voir les requêtes de l'ORM
-    });*/
     // chiffrement adresse mail pour comparaison avec la BDD
     // const emailCrypted = cryptoJS.SHA512(req.body.email,process.env.SECRET_EMAIL).toString();
     const emailCrypted = req.body.email;
     //User.findOne({ email: emailCrypted })
+    //console.table(req.ip);
     db.sequelize.query("SELECT id_compte,admin,email,password,nom,avatar FROM compte WHERE email=\'"+emailCrypted+"\' LIMIT 1;")
       .then(([resultat,metadata]) => {
-        console.log(resultat);
         if (!resultat) {
           return res.status(401).json({ message: 'Utilisateur non trouvé !' }) 
         }
@@ -67,9 +60,13 @@ exports.signup = (req, res, next) => {
           }
           res.status(200).json({
             // création du token
-            userId: resultat[0].id_compte,
+            id: resultat[0].id_compte,
+            admin: resultat[0].admin,
+            nom: resultat[0].nom,
+            email: resultat[0].email,
+            avatar: resultat[0].avatar,
             token: jwt.sign(
-              { userId: resultat[0].id_compte },
+              { userId: resultat[0].id_compte, admin: resultat[0].admin },
               process.env.TOKEN,
               { expiresIn: '24h' }
             )

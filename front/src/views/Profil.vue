@@ -1,15 +1,15 @@
 <template>
     <form>
-        <input type="file" id="file" accept=".jpg, .png, .webp" @change="displayAvatar()">
+        <input type="file" id="file" accept=".jpg, .png, .webp" @change="afficherAvatar()">
         <label id="avatar" for="file">
             <!-- Si l'utilisateur a déjà un avatar -->
-            <img v-if="compte.avatar == true" :src="require('../assets/profiles/'+compte.id+'.webp')" alt="portrait" title="avatar"/>
+            <img v-if="$store.state.compte.avatar == true" :src="require('../assets/profiles/'+$store.state.compte.id+'.webp')" alt="portrait" title="avatar"/>
             <!-- Si pas d'avatar, image générique -->
             <img v-else src='../assets/profiles/0.webp' alt="portrait" title="avatar"/>
         </label>
         <!-- Afficher le bouton de suppression de l'image selon le booleen -->
         <div class="bottom">
-            <button v-if="formulaire.bouton_avatar == true" @click="supprimerPhoto()" class="smallbutton" tabindex="0" title="supprimer photo"><img src='../assets/delete.svg' alt="supprimer photo"/></button>
+            <button v-if="formulaire.bouton_avatar == true" @click="supprimerAvatar()" class="smallbutton" tabindex="0" title="supprimer photo"><img src='../assets/delete.svg' alt="supprimer photo"/></button>
         </div>
         <div class="retour">{{ message.avatar }}</div>
         <input @keyup="verificationEmail()" type="email" placeholder="Email" v-model="formulaire.email" required />
@@ -29,36 +29,29 @@
 export default {
 name:"app",
 data() {
-        return {  
-                    compte: {
-                                // valeur en dur, pour comparer avec celles du forumlaire et déterminer quelles valeurs sont changées.
-                                id:'1',
-                                nom:'Homer Simpson',
-                                email:'homersimpson@test.com',
-                                avatar:false,
-                                admin:false
-                            },
-                formulaire: {
-                                modifier_avatar:false,
-                                // formulaire.bouton_avatar == compte.avatar au chargement de la page, sa valeur change si une image est chargée ou supprimée.
-                                bouton_avatar:false,
-                                email:'homersimpson@test.com',
-                                password:'',
-                                confirmer:'', 
-                                nom:'Homer Simpson'
-                            },
-                    message:{
-                                avatar:'',
-                                email:'',
-                                password:'',
-                                confirmer:'',
-                                nom:'',
-                                valider:''
-                            }
-                }
+    return { 
+        formulaire: {
+            // si l'avatar a été modifié (ajout, suppression ou modification)
+            modifier_avatar:false,
+            // même valeur que $store.state.compte.avatar au chargement de la page, sa valeur change si une image est chargée ou supprimée (pour afficher ou non le bouton de suppression de l'avatar)
+            bouton_avatar:this.$store.state.compte.avatar,
+            email:this.$store.state.compte.email,
+            password:'',
+            confirmer:'', 
+            nom:this.$store.state.compte.nom
         },
+        message:{
+            avatar:'',
+            email:'',
+            password:'',
+            confirmer:'',
+            nom:'',
+            valider:''
+        }
+    }
+},
 methods: {
-        supprimerPhoto() {
+        supprimerAvatar() {
             document.querySelector('#avatar>img').src=require('../assets/profiles/0.webp');
             // vérifier la présence d'une image préalablement chargée avant de la supprimer
             if (document.querySelector('#file').files[0]) {
@@ -67,7 +60,7 @@ methods: {
             this.formulaire.bouton_avatar = false;
 
             // Si pas d'avatar avant, la suppression de l'avatar chargé n'entraine pas de modification, sinon oui.
-            if (this.compte.avatar == false) {
+            if (this.$store.state.compte.avatar == false) {
                 this.formulaire.modifier_avatar = false;
                 this.message.avatar = '';
             }
@@ -154,7 +147,7 @@ methods: {
         },
         verificationFichier() {
             if (document.querySelector('#file').files[0].size > 1050000) {
-                this.supprimerPhoto();
+                this.supprimerAvatar();
                 this.message.avatar = "La photo ne doit pas dépasser 1 Mo";
                 return false;
             }
@@ -166,12 +159,12 @@ methods: {
                 fichier = document.querySelector('#file').files[0];
             }
             // vérification changement d'email
-            if (this.formulaire.email != this.compte.email) {
-                email = this.compte.email;
+            if (this.formulaire.email != this.$store.state.compte.email) {
+                email = this.formulaire.email;
             }
             // vérification changement du nom
-            if (this.formulaire.nom != this.compte.nom) {
-                nom = this.compte.nom;
+            if (this.formulaire.nom != this.$store.state.compte.nom) {
+                nom = this.formulaire.nom;
             }
             // vérification minimum 1 modification
             if ((email == '') && (this.formulaire.password == '') && (nom == '') && (this.formulaire.modifier_avatar == false)) {
@@ -203,14 +196,14 @@ methods: {
         supprimer() {
             const choix = window.confirm('Confirmer la suppression du compte ?');
             if (choix == true) {
-                console.table(this.compte.id);
+                console.table(this.$store.state.compte.id);
                 this.message.valider = 'Compte supprimé.';
             }
         },
-        displayAvatar() {
+        afficherAvatar() {
             // en cas d'annulation lors de la sélection du fichier, le fichier n'est pas chargé, il faut donc vérifier sa présence
             if (!document.querySelector('#file').files[0]) {
-                this.supprimerPhoto();
+                this.supprimerAvatar();
                 return false;
             }
             let preview = document.querySelector('#avatar>img');
@@ -233,16 +226,13 @@ methods: {
     }
 }
 </script>
+<style lang="scss" scoped>
 
-<style scoped>
-/* *{
-    background-color : red;
-    font-weight: bolder;
-    font-size:10em;
-}
-*/
-</style>
-<style lang="scss">
+$color-active:orange;
+$color-vote:#FFD580;
+$color-shadow:grey;
+$color-button:lightgrey;
+
 form {
     text-align:center;
     width:min-content;
@@ -251,9 +241,44 @@ form {
         display:block;
         font-size:1.7em;
         border-radius: 0.2em;
+        margin-top:1em;
+        font-size:1.7em;
     }
+    // boutons vote, messages, signalement, supprimer, bannir
+    .smallbutton {
+        display:flex;
+        justify-content:center;
+        border:none;
+        border-radius: 0.3em;
+        background-color:transparent;
+        height:min-content;
+        padding:0.1em;
+        margin:0 auto;
+        font-size:1em;
+        color:inherit;
+        img {
+            margin:0.15em 0.2em 0 0.2em;
+            height:1.5em;
+        }
+    }
+    // boutons de validation, création et liens
     .bigbutton {
+        display:flex;
+        justify-content: center;
+        border:none;
+        border-radius: 0.3em;
+        background-color:$color-button;
+        height:3em;
+        width:3em;
+        padding:0;
         margin:2em auto;
+        &:active {
+            background-color:$color-active;
+        }
+        img {
+                height:2em;
+                margin:auto;
+        }
     }
 }
 
@@ -265,5 +290,14 @@ form {
 }
 #file {
     display:none;
+}
+// message d'alerte
+.retour {
+    font-family: Ubuntu;
+    display:block;
+    margin:0.5em auto;
+    white-space: pre-wrap;
+    font-weight:bold;
+    color:#FF4D4D;
 }
 </style>
