@@ -1,6 +1,7 @@
 <template>
     <section>
         <div>{{ $store.state.compte.id }}</div>
+        <button @click="test()">TEST</button>
         <!-- creation d'un nouvel article -->
         <div class="box-bouton-retour">
             <button @click="afficherArticle()" class="bigbutton" tabindex="0" title="nouvel article"><img src='../assets/plus.svg' alt="creer"/></button>
@@ -33,15 +34,16 @@
                 <!-- tête de l'article : avatar, nom et date-->
                 <div class="top">
                     <div class="nom" :data-id='article.id_compte'>
-                        <img v-if="article.avatar == true" :src="require('../assets/profiles/'+article.id_compte+'.webp')" alt='avatar' title='avatar'/>
-                        <img v-else :src="require('../assets/profiles/0.webp')" alt='avatar' title='avatar'/>
-                        {{ article.nom_auteur }}
+                        <img v-if="article.avatar == true" :src="'http://localhost:3000/images/'+article.id_compte+'.webp'" alt='avatar' title='avatar'/>
+                        <img v-else :src="require('../assets/0.webp')" alt='avatar' title='avatar'/>
+                        {{ article.nom }}
                     </div>
                     <div class="date">{{ date_format(article.date) }}</div>
                 </div>
                 <!-- titre de l'article -->
                 <div class="titre">{{ article.titre }}</div>
-                <img v-if="article.image !=''" v-bind:src="require('../assets/images/'+article.image+'.webp')" alt="image"/>
+                <!-- image de l'article -->
+                <img v-if="article.image !=''" :src="'http://localhost:3000/images/'+article.image+'.webp'" alt="image"/>
                 <!-- texte de l'article -->
                 <div class="texte">{{ article.texte }}</div>
                 <!-- bloc boutons de vote, commentaires, signalement, suppression. Affichage de boutons supplémentaires pour l'admin-->
@@ -61,6 +63,7 @@
                             <div class="signal-element"><input type=radio :id="motif" name="signal" :value=index /><label :for=motif>{{motif}}</label></div>
                         </div>
                         <button @click="envoiSignalement()" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
+                        <div class="retour">{{ message.signalement }}</div>
                     </div>
                     <div v-else>
                         <!-- Si admin, afficher les signalements de l'article si le bouton signalement est cliqué-->
@@ -68,6 +71,7 @@
                             <div class="box-signal-motif" >{{ motifSignalement(signalement.motif) }}</div>
                             <div class="box-signal-compte">{{ signalement.id_compte }}</div>
                             <div class="box-signal-date">{{ date_format(signalement.date) }}</div>
+                            <div class="retour">{{ message.signalement }}</div>
                         </div>
                     </div>
                 </div>
@@ -87,19 +91,19 @@
                     <!-- tête du commentaire : avatar, nom et date-->
                     <div class="top">
                         <div class="nom" :data-id='com.id_compte'>
-                            <img v-if="com.avatar == true" :src="require('../assets/profiles/'+com.id_compte+'.webp')" alt='avatar' title='avatar'/>
-                            <img v-else :src="require('../assets/profiles/0.webp')" alt='avatar' title='avatar'/>
+                            <img v-if="com.avatar == 1" :src="'http://localhost:3000/images/'+com.id_compte+'.webp'" alt='avatar' title='avatar'/>
+                            <img v-else :src="require('../assets/0.webp')" alt='avatar' title='avatar'/>
                             {{ com.nom }}
                         </div>
                         <div class="date">{{ date_format(com.date) }}</div>
                     </div>
                     <!-- texte du commentaire -->
-                    <div class="texte">{{ com.message }}</div>
+                    <div class="texte">{{ com.texte }}</div>
                     <!-- bloc boutons de vote, commentaires, signalement, suppression -->
                     <div class="bottom">
                         <button @click="vote(com.id_commentaire,1,1)" :class="'smallbutton '+feedback(com.id_commentaire,1,1)" tabindex="0" title="upvote"><img src='../assets/up.svg' alt="vote_button"/>{{ com.upvote }}</button>
                         <button @click="vote(com.id_commentaire,1,0)" :class="'smallbutton '+feedback(com.id_commentaire,1,0)" tabindex="0" title="downvote"><img src='../assets/down.svg' alt="vote_button"/>{{ com.downvote }}</button>
-                        <button @click="afficherSignalement(com.id_article,com.id_commentaire)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ article.signalement }}</button>
+                        <button @click="afficherSignalement(com.id_article,com.id_commentaire)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ com.signalement }}</button>
                         <button v-if="$store.state.compte.admin == true" @click="conforme(com.id_commentaire,2)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
                         <button v-if="$store.state.compte.id == com.id_compte || ($store.state.compte.admin == true)" @click="supprimerDocument(com.id_commentaire,2)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
                         <button v-if="$store.state.compte.admin == true" @click="kill(com.id_compte)" class="smallbutton" tabindex="0" title="bannir"><img src='../assets/dead.svg' alt="bannir"/></button>
@@ -111,6 +115,7 @@
                                 <div class="signal-element"><input type=radio :id="motif" name="signal" :value=index /><label :for=motif>{{motif}}</label></div>
                             </div>
                             <button @click="envoiSignalement()" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
+                            <div class="retour">{{ message.signalement }}</div>
                         </div>
                         <div v-else>
                             <!-- Si admin, afficher les signalements du commentaire si le bouton signalement est cliqué-->
@@ -118,6 +123,7 @@
                                 <div class="box-signal-motif" >{{ motifSignalement(signalement.motif) }}</div>
                                 <div class="box-signal-compte">{{ signalement.id_compte }}</div>
                                 <div class="box-signal-date">{{ date_format(signalement.date) }}</div>
+                                <div class="retour">{{ message.signalement }}</div>
                             </div>
                         </div>
                     </div>
@@ -145,27 +151,17 @@ data() {
             image:'',
             text:''
         },
+        // messages de retour / erreur
         message: {
             nouveau_article:'',
-            commentaire:''
+            commentaire:'',
+            signalement:''
         },
         articles:[],
         commentaires:
-                    [
-                        {id_commentaire:1902859275,id_compte:4,avatar:true,id_article:49828942361,nom:'Lisa Simpson',date:1643902543000,message:'cet animal est vraiment très drôle !',upvote:3,downvote:0,signalement:0,feedback:true},
-                        {id_commentaire:1902859276,id_compte:4,avatar:true,id_article:49828942361,nom:'Lisa Simpson',date:1643902553000,message:'cet animal est vraiment très beau !',upvote:2,downvote:1,signalement:0,feedback:true},
-                        {id_commentaire:1092859232,id_compte:6,avatar:true,id_article:49828942361,nom:'Bender Rodriguez',date:1592859232564,message:'oui',upvote:11,downvote:2,signalement:0,feedback:null},
-                        {id_commentaire:1092859245,id_compte:7,avatar:true,id_article:49828942361,nom:'Apu Nahasapeemapetilon',date:1592859232574,message:'excellent !',upvote:1,downvote:1,signalement:0,feedback:null},
-                        {id_commentaire:1786943823,id_compte:3,avatar:true,id_article:49828942361,nom:'Marge Simpson',date:1596943823132,message:'J\'ai rigolé XD',upvote:1,downvote:0,signalement:0,feedback:false},
-                        {id_commentaire:1786943824,id_compte:2,avatar:true,id_article:49828942361,nom:'Homer Simpson',date:1596943824132,message:'Où es mon donut ?',upvote:8,downvote:2,signalement:0,feedback:null}
-                    ],
+                    [],
         signalements:
-                    [
-                        {id_document:49828942361,type:1,motif:3,date:1644371700123,id_compte:1},
-                        {id_document:1092859232,type:2,motif:1,date:1644710737179,id_compte:1},
-                        {id_document:1786943824,type:2,motif:3,date:1644710787683,id_compte:2},
-                        {id_document:49828942357,type:1,motif:0,date:1644710827555,id_compte:3}
-                    ],
+                    [],
             votes: {
                 articles:[],
                 commentaires:[]
@@ -174,6 +170,10 @@ data() {
         }
 },
 methods: {
+        test() {
+            console.table(this.articles);
+            console.table(this.commentaires);
+        },
         // pour ouvrir l'explorateur de fichiers avec le clavier et choisir une image
         enter() {
             document.querySelector('#image_article img').click();
@@ -248,21 +248,36 @@ methods: {
         },
         // afficher les commentaires
         afficherCommentaire(id_article) {
-                // boucle temporaire pour afficher le bon id article dans les datas, correspondant à la requête (à cause des données en dur)
-                for(const element of this.commentaires)
-                {
-                    element.id_article = id_article;
-                }
-                // clic pour masquer les commentaires ou les afficher
+                // clic pour masquer les commentaires s'ils sont déjà affichés, sinon les afficher.
                 if (this.afficher_commentaires == id_article){
-                    this.afficher_commentaires = null;  
+                    this.afficher_commentaires = null;
                 }
                 else {
-                    console.table(id_article);
+                    // activation du loader
+                    this.$store.state.loader = true;
+                    // on passe la requete avec le token dans le header
+                    this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+                    this.axios.get('http://localhost:3000/api/forum/getCommentaires',{params:{id:id_article}}).then((reponse)=>{
+                    // fermeture du loader
+                    this.$store.state.loader = false;
+
+                    // on charge les commentaires
+                    this.commentaires = reponse.data.commentaires;
+                    this.votes.commentaires = reponse.data.votes;
+
+                    //console.table(this.commentaires);
+                    //console.table(this.reponse.data.votes);
+
+                    // on affiches les commentaires
                     this.afficher_commentaires = id_article;
                     // on masque le signalement quand on affiche les commentaires
                     this.signal.id_article = null;
                     this.signal.id_commentaire = null;
+                    })
+                    .catch((error) => {
+                    this.$store.state.loader = false;
+                    console.log('erreur',error);
+                    })
                 }
          },
         afficherSignalement(id_article,id_commentaire) {
@@ -270,8 +285,10 @@ methods: {
                 if ((this.signal.id_article == id_article) && (this.signal.id_commentaire == id_commentaire)){
                 this.signal.id_article = null;
                 this.signal.id_commentaire = null;
+                this.message.signalement = null;
                 }
                 else {
+                    this.message.signalement = null;
                     this.signal.id_article = id_article;
                     this.signal.id_commentaire = id_commentaire;
                     if (this.signal.id_commentaire == null) {
@@ -280,8 +297,25 @@ methods: {
                     }
                     // Si admin, on récupère les signalements pour les afficher
                     if (this.$store.state.compte.admin == true) {
-                        console.log(id_article,id_commentaire);
-                        // SELECT * FROM signalement WHERE id_article = $id_article AND id_commentaire = $id_commentaire;
+                        if (id_commentaire == null) {
+                            id_commentaire = 0;
+                        }
+
+                        // activation du loader
+                        this.$store.state.loader = true;
+                        // on passe la requete avec le token dans le header
+                        this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+                        this.axios.get('http://localhost:3000/api/forum/getSignalements',{params:{id_article,id_commentaire}}).then((reponse)=>{
+                        // fermeture du loader
+                        this.$store.state.loader = false;
+
+                        // on charge les signalements
+                        this.signalements = reponse.data.signalements;
+                        })
+                        .catch((error) => {
+                        this.$store.state.loader = false;
+                        console.log('erreur',error);
+                        })
                     }
                 }
         },
@@ -301,9 +335,39 @@ methods: {
             for(let i=0;i<7;i++) {
                 const resultat = liste[i].checked;
                 if (resultat===true) {
-                    const signal = {id_article:this.signal.id_article,id_commentaire:this.signal.id_commentaire,motif:i,id_compte:this.$store.state.compte.id};
-                    console.table(signal);
-                    break;
+                    const signal = {id_article:this.signal.id_article,id_commentaire:this.signal.id_commentaire,motif:i};
+                    // activation du loader
+                    this.$store.state.loader = true;
+                    // on passe la requete avec le token dans le header
+                    this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+                    this.axios.post('http://localhost:3000/api/forum/postSignalement',signal).then((reponse)=>{
+                    // fermeture du loader
+                    this.$store.state.loader = false;
+
+                    // on affiche la réponse
+                    this.message.signalement = reponse.data.message;
+
+                    // mettre à jour le compteur
+                    if (this.signal.id_commentaire != null) {
+                        for (const element of this.commentaires){
+                            if (element.id_commentaire == this.signal.id_commentaire){
+                                element.signalement++;
+                            }
+                        }
+                    }
+                    else {
+                        for (const element of this.articles){
+                            if (element.id_article == this.signal.id_article){
+                                element.signalement++;
+                            }
+                        }
+                    }
+
+                    })
+                    .catch((error) => {
+                        this.$store.state.loader = false;
+                        this.message.signalement = error.response.data.message;
+                    })
                 }
             }
         },
@@ -327,66 +391,110 @@ methods: {
 
             // on prépare la requête
             const vote = {id_document:id_document,type:type,direction:direction};
+            console.log('envoie du vote : ');
+            console.table(vote);
+
+            // activation du loader
+            this.$store.state.loader = true;
+
+            // requête
             this.axios.post('http://localhost:3000/api/forum/Vote',vote).then((reponse)=>{
+            console.log(reponse);
+
+            // fermeture du loader
+            this.$store.state.loader = false;
 
             // on choisi la liste article ou commentaire à modifier, selon le document
             let liste_vote = null;
+            let liste_document = null;
+            let document = null;
             if (type == 0) {
-                liste_vote = this.votes.articles
+                liste_vote = this.votes.articles;
+                liste_document = this.articles;
+                document = 'id_article';
             }
             else {
-                liste_vote = this.votes.commentaire
+                liste_vote = this.votes.commentaires;
+                liste_document = this.commentaires;
+                document = 'id_commentaire';
             }
-
-                console.log('reponse.data.vote : ');
-                console.table(reponse.data.vote);
-
+                let ancien_vote = null;
                 // on supprime le précédent état de vote dans le tableau, s'il existe
                 for (const element of liste_vote) {
-                    if (Object.values(element)[0] == id_document) {
-                        console.table(element);
-                        liste_vote.splice(element,1);
+                    if (element[document] == id_document) {
+                        // récupérer l'etat précédent du vote, pour ajuster les compteurs
+                        ancien_vote = element.vote;
+                        // suprimer l'ancien vote en évitant les erreurs (splice)
+                        element[document] = null;
+                        element.vote = null;
                     }
                 }
-                // on ajoute le nouvel état de vote du document dans le tableau
-                liste_vote.push(reponse.data);
-                console.log('liste_vote : ');
-                console.table(liste_vote);
+
+                // neutralisation des variables de mise à jour du compteur de vote
+                let up = 0;
+                let down = 0;
+
+                // on calcule la mise à jour du compteur et du tableau de vote selon l'ancien vote et le nouveau
+                if ((direction == 0) && (ancien_vote == 0)) {
+                    down = -1;
+                }
+                if ((direction == 1) && (ancien_vote == 1)) {
+                    up = -1;
+                }
+                if ((direction == 1) && (ancien_vote == 0)) {
+                    down = -1;
+                    up = 1;
+                    liste_vote.push({[document]:id_document,vote:1});
+                }
+                if ((direction == 0) && (ancien_vote == 1)) {
+                    down = 1;
+                    up = -1
+                    liste_vote.push({[document]:id_document,vote:0});
+                }
+                if ((direction == 0) && (ancien_vote == null)) {
+                    down = 1;
+                    liste_vote.push({[document]:id_document,vote:0});
+                }
+                if ((direction == 1) && (ancien_vote == null)) {
+                    up = 1;
+                    liste_vote.push({[document]:id_document,vote:1});
+                }
+
+                // on met à jour le compteur de vote du document
+                for (const element of liste_document) {
+                    if (element[document] == id_document) {
+                        console.log('maj compteur : ',element,'up:',up,'down:',down);
+                        element.upvote = element.upvote + up;
+                        element.downvote = element.downvote + down;
+                    }
+                }
+
                 console.log('votes.articles');
                 console.table(this.votes.articles);
             })
             .catch((error) => {
                 console.log('erreur',error);
             })
-            /*
-            console.log(document.feedback);
-            if (document.feedback == feedback){feedback = null}
-            const vote = {
-                            id_compte:this.$store.state.compte.id,
-                            id_document:Object.values(document)[0],
-                            voted:feedback,
-                            type:type
-                        };
-            console.table(vote);
-            document.feedback = feedback;
-            */
         },
         // afficher l'attribut selon le statut du vote (up, down ou rien)
         // Type : 0 = article, 1 = commentaire ; Direction : 0 = downvote, 1 = upvote
         feedback(id_document,type,direction) {
             let liste_vote = null;
+            let document = null;
             // On choisi la liste article ou commentaire selon le document
             if (type == 0) {
-                liste_vote = this.votes.articles
+                liste_vote = this.votes.articles;
+                document = "id_article";
             }
             else {
-                liste_vote = this.votes.commentaire
+                liste_vote = this.votes.commentaires;
+                document = "id_commentaire";
             }
             for (const element of liste_vote) {
                 // si on trouve l'identifiant du document, il y a un vote
-                if (Object.values(element)[0] == id_document) {
+                if (element[document] == id_document) {
                     // si le vote correspond au bouton à illuminer, on retourne la class qui affiche la sélection du bouton
-                    if (Object.values(element)[1] == direction) {
+                    if (element.vote == direction) {
                         return 'voted';
                     }
                     else {
@@ -460,44 +568,37 @@ methods: {
                     liste_data.push(index);
                 }
             }
-            // on inverse le tableau d'index pour commencer par le dernier, afin de ne pas sauter des lignes avec la méthode split()
+            // on inverse le tableau d'index pour commencer par le dernier, afin de ne pas sauter des lignes avec la méthode splice()
             liste_data = liste_data.reverse();
             for (const element of liste_data) {
                 this.commentaires.splice(element,1);
             }
         },
-        chargementArticles: function() {
-                this.axios.get('http://localhost:3000/api/forum/getArticles').then((reponse)=>{
-                //console.log(reponse);
-                // on récupère le token d'authentification pour les futures requêtes
-                // this.axios.defaults.headers.common['Authorization'] = reponse.data.token;
-                //console.table(reponse.data.articles);
-                console.log(this.$store.state.token);
-                console.table(reponse.data.votes);
-                this.articles = reponse.data.articles;
-                this.votes.articles = reponse.data.votes;
-                })
-                .catch((error) => {
-                console.log('erreur',error);
-                })
+        chargementPage: function() {
+            // on récupère les infos de compte et connexion dans le localStorage
+            this.$store.state.compte = JSON.parse(localStorage.getItem('compte'));
+
+            // activation du loader
+            this.$store.state.loader = true;
+            // on passe la requete avec le token dans le header
+            this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+            this.axios.get('http://localhost:3000/api/forum/getArticles').then((reponse)=>{
+            // fermeture du loader
+            this.$store.state.loader = false;
+
+            // on insert les articles et votes dans les variables correspondantes, pour les afficher
+            this.articles = reponse.data.articles;
+            this.votes.articles = reponse.data.votes;
+            })
+            .catch((error) => {
+            this.$store.state.loader = false;
+            console.log('erreur',error);
+            })
         }
     },
     created: function() {
-        this.chargementArticles();
-    }/*,
-    mounted: {
-            function() {
-                console.log(this.$store.state.compte.id);
-                this.axios.post('http://localhost:3000/api/auth/login',this.$store.state.compte.id).then((reponse)=>{
-                // on récupère le token d'authentification pour les futures requêtes
-                // this.axios.defaults.headers.common['Authorization'] = reponse.data.token;
-                console.table(reponse);
-                })
-                .catch((error) => {
-                console.log('erreur',error);
-                })
-            }
-    }*/
+        this.chargementPage();
+    }
 }
 </script>
 <style lang="scss" scoped>

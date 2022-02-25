@@ -88,11 +88,6 @@ exports.Vote = (req, res, next) => {
       type = 'commentaire';
     }
 
-  /*db.sequelize.query("SELECT COUNT(id_"+type+") FROM vote_"+type+" WHERE id_compte="+req.auth.userId+" AND id_"+type+"="+req.body.id_document+";")
-  .then(([vote,metadata]) => {
-    console.log(vote);
-  })
-  .catch(error => res.status(500).json({ error,type }));*/
   // Récupération du vote s'il existe. COUNT() pour éviter erreur si résultat vide.
   db.sequelize.query("SELECT COUNT(id_"+type+"), vote FROM vote_"+type+" WHERE id_compte="+req.auth.userId+" AND id_"+type+"="+req.body.id_document+";")
   .then(([vote,metadata]) => {
@@ -135,13 +130,12 @@ exports.Vote = (req, res, next) => {
     if ((vote[0].vote == 0) && (req.body.direction == 1)) {
       db.sequelize.query("UPDATE vote_"+type+" SET vote=1 WHERE id_compte="+req.auth.userId+" AND id_"+type+"="+req.body.id_document+";")
       .then(([resultat,metadata]) => {
-        console.log('transformer downvote 1');
+        console.log('transformer downvote en upvote 1');
         // mettre à jour les compteurs upvote et downvote sur le document
         db.sequelize.query("UPDATE "+type+" SET downvote=downvote-1, upvote=upvote+1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
-          console.log('transformer downvote 2');
-          type = "id_"+type;
-          res.status(200).json({[type]:req.body.id_document,vote:1})
+          console.log('transformer downvote en upvote 2');
+          res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
       })
@@ -157,8 +151,7 @@ exports.Vote = (req, res, next) => {
         db.sequelize.query("UPDATE "+type+" SET downvote=downvote+1, upvote=upvote-1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
           console.log('transformer upvote en downvote 2');
-          type = "id_"+type;
-          res.status(200).json({[type]:req.body.id_document,vote:0})
+          res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
       })
@@ -171,11 +164,10 @@ exports.Vote = (req, res, next) => {
       .then(([resultat,metadata]) => {
         console.log('ajouter un updown sans antécédent 1');
         // mettre à jour le compteur upvote sur le document
-        db.sequelize.query("UPDATE "+type+" SET upvote=upvote+1 WHERE id_"+type+"='"+req.body.id_document+"'")
+        db.sequelize.query("UPDATE "+type+" SET upvote=upvote+1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
           console.log('ajouter un updown sans antécédent 2');
-          type = "id_"+type;
-          res.status(200).json({[type]:req.body.id_document,vote:1})
+          res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
       })
@@ -185,14 +177,13 @@ exports.Vote = (req, res, next) => {
     // ajouter un downvote sans antécédent
     if ((vote[0].vote == null) && (req.body.direction == 0)) {
       console.log('ajouter un downdown sans antécédent 1');
-      db.sequelize.query("INSERT INTO vote_"+type+" VALUES ('"+req.auth.userId+",'"+req.body.id_document+",0)")
+      db.sequelize.query("INSERT INTO vote_"+type+" VALUES ("+req.auth.userId+","+req.body.id_document+",0)")
       .then(([resultat,metadata]) => {
         // mettre à jour le compteur upvote sur le document
         db.sequelize.query("UPDATE "+type+" SET downvote=downvote+1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
           console.log('ajouter un downdown sans antécédent 2');
-          type = "id_"+type;
-          res.status(200).json({[type]:req.body.id_document,vote:1})
+          res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
       })
@@ -209,13 +200,14 @@ exports.getArticles = (req, res, next) => {
       if (!articles) {
         return res.status(401).json({ message: 'Articles non trouvés' }) 
       }
+      // récupération des votes articles
       db.sequelize.query("SELECT id_article, vote FROM vote_article WHERE id_compte = \'"+req.auth.userId+"\';")
-      // comparaison du mot de passe avec la BDD
       .then(([votes,metadata]) => {
         if (!votes) {
           return res.status(401).json({ message: 'Votes non trouvés' });
         }
         res.status(200).json({
+          // on renvoie un tableau d'articles et les votes du client
           articles,votes
         });
       })
@@ -224,73 +216,87 @@ exports.getArticles = (req, res, next) => {
     .catch(error => res.status(500).json({ error }));
 };
 
-exports.getAllThings = (req, res, next) => {
-    Thing.find()
-      .then(things => {
-        things.forEach(function(thing){
-          // recherche de userId dans les likes ou dislike de la sauce ( -1 == pas d'occurence )
-          const userLiked = thing.usersLiked.indexOf(req.auth.userId);
-          const userDisliked = thing.usersDisliked.indexOf(req.auth.userId);
-          // n'afficher que l'identifiant de l'utilisateur dans la liste des likes et dislikes, pour confidentialité.
-          if (userLiked > -1){thing.usersLiked = [req.auth.userId]}
-          else {thing.usersLiked = [];}
-          if (userDisliked > -1){thing.usersDisliked = [req.auth.userId]}
-          else {thing.usersDisliked = [];}
-        })
-        res.status(200).json(things);
-      })
-      .catch(error => res.status(400).json({ error }));
-    }
-
-exports.likeSauce = (req, res, next) => {
-    const sauceId = req.params.id;
-    const userId = req.body.userId;
-    const like = req.body.like;
-
-    Thing.findOne({ _id: sauceId })
-      .then(thing => {
-        // recherche de userId dans les likes ou dislike de la sauce ( -1 == pas d'occurence )
-        const userLiked = thing.usersLiked.indexOf(userId);
-        const userDisliked = thing.usersDisliked.indexOf(userId);
-
-        switch(true){
-          // pas déjà liké ni disliké, et demande de like
-        case (userLiked==-1 && userDisliked==-1 && like==1):
-            Thing.updateOne({_id: sauceId},{$push:{usersLiked:userId},$inc:{likes:1}})
-            .then(() => res.status(200).json({ message: 'Ok'}))
-            .catch(error => res.status(400).json({ error }));
-            break;
-          // pas déjà liké ni disliké, et demande de dislike
-        case (userLiked==-1 && userDisliked==-1 && like==-1):
-            Thing.updateOne({_id: sauceId},{$push:{usersDisliked:userId},$inc:{dislikes:1}})
-            .then(() => res.status(200).json({ message: 'Ok'}))
-            .catch(error => res.status(400).json({ error }));
-            break;
-          // déjà liké, et demande de retrait du like
-        case (userLiked>-1 && like==0):
-            Thing.updateOne({_id: sauceId},{$pull:{usersLiked:userId},$inc:{likes:-1}})
-            .then(() => res.status(200).json({ message: 'Ok'}))
-            .catch(error => res.status(400).json({ error }));
-            break;
-          // déjà liké, et demande de dislike (fonction bloquée en frontend)
-        case (userLiked>-1 && like==-1):
-            Thing.updateOne({_id: sauceId},{$push:{usersDisliked:userId},$pull:{usersLiked:userId},$inc:{likes:-1},$inc:{dislikes:1}})
-            .then(() => res.status(200).json({ message: 'Ok'}))
-            .catch(error => res.status(400).json({ error }));
-            break;
-          // déjà disliké, et demande de retrait du dislike
-        case (userDisliked>-1 && like==0):
-            Thing.updateOne({_id: sauceId},{$pull:{usersDisliked:userId},$inc:{dislikes:-1}})
-            .then(() => res.status(200).json({ message: 'Ok'}))
-            .catch(error => res.status(400).json({ error }));
-            break;
-          // déjà disliké, et demande de like (fonction bloquée en frontend)
-        case (userDisliked>-1 && like==1):
-            Thing.updateOne({_id: sauceId},{$push:{usersLiked:userId},$pull:{usersDisliked:userId},$inc:{likes:1},$inc:{dislikes:-1}})
-            .then(() => res.status(200).json({ message: 'Ok'}))
-            .catch(error => res.status(400).json({ error }));
-            break;
+exports.getCommentaires = (req, res, next) => {
+  // vérification sécurité
+  let id = Number(req.query.id);
+  if (!Number.isInteger(id) || (id.length > 15)) {
+    return res.status(401).json({ message: 'erreur type de données'})
+  }
+  // Récupération des commentaires
+  db.sequelize.query("SELECT commentaire.id_commentaire, commentaire.id_compte, commentaire.id_article, commentaire.texte, commentaire.date, commentaire.upvote, commentaire.downvote, commentaire.signalement, compte.nom, compte.avatar FROM commentaire JOIN compte ON commentaire.id_compte = compte.id_compte WHERE commentaire.id_article = "+id+";")
+    .then(([commentaires,metadata]) => {
+      if (!commentaires) {
+        return res.status(401).json({ message: 'Commentaires non trouvés' }) 
+      }
+      // récupération des votes commentaires du client
+      db.sequelize.query("SELECT id_commentaire, vote FROM vote_commentaire WHERE id_compte = \'"+req.auth.userId+"\';")
+      .then(([votes,metadata]) => {
+        if (!votes) {
+          return res.status(401).json({ message: 'Votes non trouvés' });
         }
+        res.status(200).json({
+          // on renvoie un tableau de commentaires et les votes du client
+          commentaires,votes
+        });
       })
-      .catch(error => res.status(400).json({ error }));
+      .catch(error => res.status(500).json({ error }));
+    })
+    .catch(error => res.status(500).json({ error }));
+};
+
+
+exports.getSignalements = (req, res, next) => {
+  // Vérification droits admin
+  if (req.auth.admin != 1){
+    res.status(401).json({
+      message: 'Droits admin requis'
+    });
+  }
+
+  // Vérification sécurité
+  const articles = Number(req.query.id_article);
+  const commentaires = Number(req.query.id_commentaire);
+  db.sequelize.query("SELECT id_article, id_commentaire, motif, date, id_compte FROM signalement WHERE id_article = "+articles+" AND id_commentaire = "+commentaires+";")
+  .then(([signalements,metadata]) => {
+    if (!signalements) {
+      return res.status(401).json({ message: 'Signalements non trouvés' });
+    }
+    res.status(200).json({
+      signalements
+    });
+  })
+  .catch(error => res.status(500).json({ error }));
+}
+
+exports.postSignalement = (req, res, next) => {
+  // Vérification sécurité
+  const id_article = Number(req.body.id_article);
+  const id_commentaire = Number(req.body.id_commentaire);
+  const motif = Number(req.body.motif);
+  const date = Date.now();
+  // On vérifie s'il n'y a pas déjà un signalement de la part du client sur ce document
+  db.sequelize.query("SELECT COUNT(id) FROM signalement WHERE id_article = "+id_article+" AND id_commentaire = "+id_commentaire+" AND id_compte = "+req.auth.userId+";")
+  .then(([resultat,metadata]) => {
+    if (resultat[0]['COUNT(id)'] != 0) {
+      return res.status(401).json({ message: 'Déjà signalé' });
+    }
+    // On enregistre le signalement
+    db.sequelize.query("INSERT INTO signalement (id_article, id_commentaire, motif, date, id_compte) VALUES ("+id_article+","+id_commentaire+","+motif+","+date+","+req.auth.userId+");")
+    // On met à jour le compteur sur le document
+      if (id_commentaire == 0) {
+          db.sequelize.query("UPDATE article SET signalement = signalement+1 WHERE id_article = "+id_article+";")
+          .then(([signalements,metadata]) => {
+            res.status(200).json({ message: 'Signalement enregistré' });
+          })
+          .catch(error => res.status(500).json({ error }));
+        }
+        else {
+          db.sequelize.query("UPDATE commentaire SET signalement = signalement+1 WHERE id_commentaire = "+id_commentaire+";")
+          .then(([signalements,metadata]) => {
+            res.status(200).json({ message: 'Signalement enregistré' });
+          })
+          .catch(error => res.status(500).json({ error }));
+        }
+  })
+  .catch(error => res.status(500).json({ error }));
 }

@@ -31,6 +31,7 @@ methods: {
         verificationEmail() {
             let validation = true;
             this.message.email = '';
+            this.message.connexion = 'Vous êtes déconnecté';
             if ((/\S{2,40}@\S{2,40}\.\S{2,10}/.test(this.email)==false) || this.email.length > 50) {
                 validation = false;
                 this.message.email = 'L\'adresse e-mail doit comporter un arobase et un point.';
@@ -44,6 +45,7 @@ methods: {
             let chiffre,minuscule,majuscule,symbole,longueur;
             let validation = true;
             this.message.password = '';
+            this.message.connexion = 'Vous êtes déconnecté';
             if (/[0-9]{1,}/.test(this.password)==false) {
                 validation = false;
                 chiffre = '\n1 chiffre';
@@ -77,25 +79,42 @@ methods: {
         envoi() {
             if ((this.verificationEmail() == true) && (this.verificationPassword() == true)) {
                 const connexion = {email:this.email,password:this.password}
+                // activation du loader
+                this.$store.state.loader = true;
                 console.table(connexion);
+
+                // requête de connexion
                 this.axios.post('http://localhost:3000/api/auth/login',connexion).then((reponse)=>{
+                    // fermeture du loader
+                    this.$store.state.loader = false;
+                    console.table(connexion);
+
                     // on récupère le token d'authentification pour les futures requêtes
-                    this.axios.defaults.headers.common['Authorization'] = reponse.data.token;
-                    this.$store.state.token = {'Authorization': 'Bearer '+reponse.data.token};
-                    // On enregistre les infos du compte dans la data globale
-                    this.$store.state.compte.id = reponse.data.id;
-                    this.$store.state.compte.nom = reponse.data.nom;
-                    this.$store.state.compte.email = reponse.data.email;
-                    this.$store.state.compte.avatar = reponse.data.avatar;
-                    this.$store.state.compte.admin = reponse.data.admin;
+                    this.axios.defaults.headers.common['Authorization'] = 'Bearer '+reponse.data.token;
+
+                    // On enregistre les infos du compte dans la data globale (+ token)
+                    this.$store.state.compte.token = reponse.data;
+
+                    // On enregistre les infos du compte dans le localStorage (+ token)
+                    localStorage.setItem('compte',JSON.stringify(reponse.data));
+
                     // redirection vers la page forum
                     this.$router.push('/forum');
                 })
                 .catch((error) => {
-                    console.log('erreur',error);
+                    this.$store.state.loader = false;
+                    this.message.connexion = error;
                 })
             }
+        },
+        chargementPage: function() {
+            // déconnexion de la session en cours, au chargement de la page
+            localStorage.removeItem('compte');
+            this.$store.state.compte.token = '';
         }
+    },
+    created: function() {
+    this.chargementPage();
     }
 }
 </script>

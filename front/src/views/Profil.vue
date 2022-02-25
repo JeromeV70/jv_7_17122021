@@ -3,9 +3,9 @@
         <input type="file" id="file" accept=".jpg, .png, .webp" @change="afficherAvatar()">
         <label id="avatar" for="file">
             <!-- Si l'utilisateur a déjà un avatar -->
-            <img v-if="$store.state.compte.avatar == true" :src="require('../assets/profiles/'+$store.state.compte.id+'.webp')" alt="portrait" title="avatar"/>
+            <img v-if="$store.state.compte.avatar == true" :src="'http://localhost:3000/images/'+$store.state.compte.id+'.webp'" alt="portrait" title="avatar"/>
             <!-- Si pas d'avatar, image générique -->
-            <img v-else src='../assets/profiles/0.webp' alt="portrait" title="avatar"/>
+            <img v-else src='../assets/0.webp' alt="portrait" title="avatar"/>
         </label>
         <!-- Afficher le bouton de suppression de l'image selon le booleen -->
         <div class="bottom">
@@ -52,7 +52,7 @@ data() {
 },
 methods: {
         supprimerAvatar() {
-            document.querySelector('#avatar>img').src=require('../assets/profiles/0.webp');
+            document.querySelector('#avatar>img').src=require('../assets/0.webp');
             // vérifier la présence d'une image préalablement chargée avant de la supprimer
             if (document.querySelector('#file').files[0]) {
                 document.querySelector('#file').value = '';
@@ -222,7 +222,41 @@ methods: {
             // affichage du bouton "supprimer"
             this.formulaire.bouton_avatar = true;
             this.formulaire.modifier_avatar = true;
+        },
+        chargementPage: function() {
+
+            // on récupère les infos de compte et connexion dans le localStorage
+            this.$store.state.compte = JSON.parse(localStorage.getItem('compte'));
+
+            // activation du loader
+            this.$store.state.loader = true;
+
+            // on passe une requete avec le token dans le header, pour vérifier la connexion
+            this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+            this.axios.get('http://localhost:3000/api/profil/acces').then((reponse)=>{
+            // fermeture du loader
+            this.$store.state.loader = false;
+
+            // on ajoute le token aux données du compte mise à jour'
+            reponse.data.token = this.$store.state.compte.token;
+            // mise à jour des informations du compte dans les datas globales, et dans le localStorage
+            this.$store.state.compte = reponse.data;
+            localStorage.setItem('compte',JSON.stringify(reponse.data));
+            })
+            .catch((error) => {
+                this.$store.state.loader = false;
+                this.$router.push('/connexion');
+                console.log(error);
+            })
+
+            // initialiser les boutons du formulaire, et le bouton supprimer pour l'avatar
+            this.formulaire.email = this.$store.state.compte.email;
+            this.formulaire.nom = this.$store.state.compte.nom;
+            this.formulaire.bouton_avatar = this.$store.state.compte.avatar;
         }
+    },
+    created: function() {
+        this.chargementPage();
     }
 }
 </script>

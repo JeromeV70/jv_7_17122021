@@ -28,6 +28,9 @@ try {
 
 const forumRoutes = require('./routes/forum');
 const userRoutes = require('./routes/user');
+const profilRoutes = require('./routes/profil');
+// pour le serveur d'images
+//const auth = require('./middleware/auth');
 
 app.use(helmet());
 
@@ -40,9 +43,12 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-app.use('/images', express.static(path.join(__dirname, 'images')));
+// pour exiger l'auth pour les images
+//app.use('/images', auth, express.static(path.join(__dirname, '/images')));
+app.use('/images', express.static(path.join(__dirname, '/images')));
 app.use('/api/forum', forumRoutes);
 app.use('/api/auth', userRoutes);
+app.use('/api/profil', profilRoutes);
 
 const db = {};
 db.sequelize = sequelize;

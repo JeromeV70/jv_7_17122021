@@ -5,9 +5,9 @@
     </div>
     <div id="logo"><img src='./assets/icon.svg' alt='logo' title='groupomania' />Groupomania</div>
     <nav>
-      <router-link @click="connect()" to="/connexion" class="bigbutton" :title="title()"><img v-if="login == false" src='./assets/login.svg' alt="connexion"/><img v-else src='./assets/exit.svg' alt="déconnexion"/></router-link>
-      <router-link to="/profil" class="bigbutton" title="profil"><img src='./assets/profil.svg' alt="profil"/></router-link>
-      <router-link to="/forum" class="bigbutton" title="forum"><img src='./assets/forum.svg' alt="forum"/></router-link>
+      <router-link to="/connexion" class="bigbutton" :title="title()"><img v-if="(!$store.state.compte.token)" src='./assets/login.svg' alt="connexion"/><img v-else src='./assets/exit.svg' alt="déconnexion"/></router-link>
+      <router-link to="/profil" v-if="($store.state.compte.token)" class="bigbutton" title="profil"><img src='./assets/profil.svg' alt="profil"/></router-link>
+      <router-link to="/forum" v-if="($store.state.compte.token)" class="bigbutton" title="forum"><img src='./assets/forum.svg' alt="forum"/></router-link>
       <router-link to="/legal" class="bigbutton" title="legal"><img src='./assets/legal.svg' alt="legal"/></router-link>
       <a @click="nightMode()" class="bigbutton" tabindex="0" title="mode nuit"><img src='./assets/night.svg' alt="mode nuit"/></a>
     </nav>
@@ -17,22 +17,15 @@
 <script>
 export default {
 name:"app",
-data() {
-  return {
-            login:true
-        }
-},
 methods: {
-        // fermer la session en cours si clic sur bouton de connexion / déconnexion
-        connect() {
-          if (this.login == true) {
-            this.login = false;
-          }
-        },
         // titre du bouton "connexion" ou "déconnnexion"
         title() {
-          if(this.login == true){return "déconnexion"}
-          else {return "connexion"}
+          if (!this.$store.state.compte.token) {
+            return "connexion"
+          }
+          else {
+            return "déconnexion"
+          }
         },
         nightMode() {
           let root = document.documentElement;
@@ -54,7 +47,17 @@ methods: {
           else {
             root.style.setProperty('--darkfilter','grayscale(33%)');
           }
+        },
+        chargementPage: function() {
+          // Au chargement de l'application, aller sur la page connexion
+          /*console.log(this.$route.path);
+          if (this.$route.path == "/") {
+            this.$router.push('/legal');
+          }*/
         }
+    },
+    created: function() {
+        this.chargementPage();
     }
 }
 </script>

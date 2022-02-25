@@ -3,14 +3,14 @@ import { createStore } from 'vuex'
 export default createStore({
   state: {
     compte: {
-      id:Number,
-      nom:String,
-      email:String,
-      avatar:Boolean,
-      admin:Boolean,
+      id:null,
+      admin:null,
+      nom:null,
+      email:null,
+      avatar:null,
+      token:null
     },
-    loader:false,
-    token:String
+    loader:false
   },
   mutations: {
   },

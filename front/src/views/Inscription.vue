@@ -89,14 +89,45 @@ methods: {
             return validation;
         },
         envoi() {
+            let connexion = '';
             if ((this.verificationEmail() == true) && (this.verificationPassword() == true) && (this.verificationNom() == true)) {
-                const connexion = {email:this.email,password:this.password,nom:this.nom}
-                console.table(connexion);
+                connexion = {email:this.email,password:this.password,nom:this.nom}
                 this.message.valider = '';
             }
             else {
                 this.message.valider = "Le formulaire est invalide";
+                return false;
             }
+
+            // activation du loader
+            this.$store.state.loader = true;
+            // requête d'inscription
+            this.axios.post('http://localhost:3000/api/auth/signup',connexion).then((reponse)=>{
+
+                // fermeture du loader
+                this.$store.state.loader = false;
+                // on récupère le token d'authentification pour les futures requêtes
+                this.axios.defaults.headers.common['Authorization'] = 'Bearer '+reponse.data.token;
+
+                // On enregistre les infos du compte dans la data globale (+ token)
+                this.$store.state.compte.token = reponse.data;
+
+                // On enregistre les infos du compte dans le localStorage (+ token)
+                localStorage.setItem('compte',JSON.stringify(reponse.data));
+
+                console.log('reponse.data : ');
+                console.table(reponse.data);
+                console.log('$store.state.compte : ');
+                console.table(this.$store.state.compte);           
+
+                // redirection vers la page forum
+                this.$router.push('/forum');
+            })
+            .catch((error) => {
+                this.$store.state.loader = false;
+                console.log(error);
+                this.message.valider = 'Erreur';
+            })
         }
     }
 }
@@ -141,5 +172,15 @@ form {
             height:2em;
             margin:auto;
     }
+}
+// message d'alerte
+.retour {
+    font-family: Ubuntu;
+    display:block;
+    margin:0.5em auto;
+    white-space: pre-wrap;
+    font-weight:bold;
+    color:#FF4D4D;
+    text-align: center;
 }
 </style>
