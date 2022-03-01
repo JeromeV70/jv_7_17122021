@@ -51,6 +51,7 @@ exports.SupprimerCompte = (req, res, next) => {
 
   // Seul l'admin ou le client peut supprimer son compte
   if ((req.auth.admin != 1) && (id_compte != req.auth.userId)) {
+    console.log(id_compte,req.auth.userId);
     res.status(401).json({ message: 'Non authorisé' });
   }
     else {

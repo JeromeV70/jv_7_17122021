@@ -231,8 +231,27 @@ methods: {
         supprimer() {
             const choix = window.confirm('Confirmer la suppression du compte ?');
             if (choix == true) {
-                console.table(this.$store.state.compte.id);
-                this.message.valider = 'Compte supprimé.';
+
+            const id = {id_compte:this.$store.state.compte.id};
+
+            // activation du loader
+            this.$store.state.loader = true;
+            console.log(this.$store.state.compte.id);
+
+            // on passe la requete avec le token dans le header
+            this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
+            this.axios.post('http://localhost:3000/api/profil/SupprimerCompte',id).then((reponse)=>{
+
+                // fermeture du loader
+                this.$store.state.loader = false;
+                console.log(reponse.data.message);
+                window.alert('Compte supprimé');
+                this.$router.push('/connexion');
+            })
+            .catch((error) => {
+                this.$store.state.loader = false;
+                console.log('erreur',error);
+            })
             }
         },
         afficherAvatar() {
