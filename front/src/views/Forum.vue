@@ -689,6 +689,9 @@ methods: {
             this.$store.state.compte.email = JSON.parse(localStorage.getItem('compte')).email;
             this.$store.state.compte.avatar = JSON.parse(localStorage.getItem('compte')).avatar;
 
+            console.table(this.$store.state.compte);
+            console.log('token avant envoie requete forum : ',JSON.parse(localStorage.getItem('compte')).token);
+
             // activation du loader
             this.$store.state.loader = true;
             // on passe la requete avec le token dans le header

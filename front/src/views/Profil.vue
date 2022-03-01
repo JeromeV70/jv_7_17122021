@@ -208,7 +208,11 @@ methods: {
                         this.message.valider = reponse.data.message;
 
                         // on met à jour la data globale
-                        this.$store.state.compte = reponse.data;
+                        this.$store.state.compte.id = reponse.data.id;
+                        this.$store.state.compte.admin = reponse.data.admin;
+                        this.$store.state.compte.nom = reponse.data.nom;
+                        this.$store.state.compte.email = reponse.data.email;
+                        this.$store.state.compte.avatar = reponse.data.avatar;
 
                         // on met à jour le localstorage
                         localStorage.setItem('compte',JSON.stringify(this.$store.state.compte));
