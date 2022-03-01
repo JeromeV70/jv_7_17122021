@@ -12,7 +12,6 @@ const { DATE } = require('sequelize');
 require('dotenv').config({path:'../.env'})
 
 exports.signup = (req, res, next) => {
-    console.log('11111');
     const schema = new passwordValidator();
     schema
     .is().min(10)
@@ -20,25 +19,20 @@ exports.signup = (req, res, next) => {
     .has().uppercase()
     .has().lowercase()
     .has().digits();
-    console.log(req.body.password);
     // vérification format du mot de passe
     if(!schema.validate(req.body.password)){res.status(400).json({ error: "erreur password"});return;}
-    console.log('22222');
     // vérification format de l'adresse mail
     if((!/\S+@\S+\.\S+/i.test(req.body.email)) || (req.body.email.lenght > 50) || (req.body.email.lenght <2)){res.status(400).json({ error: "erreur email"});return;}
-    console.log('33333');
     // vérification du nom
     if ((req.body.nom.lenght > 30) || (req.body.nom.lenght < 2)){res.status(400).json({ error: "erreur nom"});return;}
     // hashage du mot de passe
-    console.log('44444');
     bcrypt.hash(req.body.password, 10)
     .then(hash => {
-      console.log('55555');
       //clés de chiffrement, longueurs 32 octets et 16 octets, pour aes256
       const key = crypto.scryptSync(process.env.TOKEN, '@salt', 32);
       const iv = Buffer.alloc(16,42);
 
-      // création des objets de chiffrement et déchiffrement
+      // création de l'objet de chiffrement
       const cipher = crypto.createCipheriv('aes256', key, iv);
 
       // chiffrement de l'email
@@ -47,15 +41,12 @@ exports.signup = (req, res, next) => {
 
       // enregistrement du compte
       const date = Date.now();
-      console.log('66666');
       db.sequelize.query("INSERT INTO compte VALUES (default,'0',\'"+crypted+"\',\'"+hash+"\',\'"+req.body.nom+"\','0',\'"+date+"\',\'"+req.ip+"\');")
       .then(([resultat,metadata]) => {
-        console.log('77777');
         console.log(resultat);
         // on récupère l'identifiant du compte créé
         db.sequelize.query("SELECT id_compte FROM compte WHERE email=\'"+crypted+"\';")
         .then(([resultat,metadata]) => {
-          console.log('88888');
           res.status(200).json({
             // création du token
             id: resultat[0].id_compte,
@@ -63,13 +54,12 @@ exports.signup = (req, res, next) => {
             nom: req.body.nom,
             email: req.body.email,
             avatar:0,
-            token: jwt.sign(
+            token: 'Bearer '+jwt.sign(
               { userId: resultat[0].id_compte, admin:0 },
               process.env.TOKEN,
               { expiresIn: '24h' }
             )
           });
-          console.log('99999');
         })
         .catch(error => res.status(500).json({ error }));
       })
@@ -120,7 +110,7 @@ exports.signup = (req, res, next) => {
             nom: resultat[0].nom,
             email: resultat[0].email,
             avatar: resultat[0].avatar,
-            token: jwt.sign(
+            token: 'Bearer '+jwt.sign(
               { userId: resultat[0].id_compte, admin: resultat[0].admin },
               process.env.TOKEN,
               { expiresIn: '24h' }

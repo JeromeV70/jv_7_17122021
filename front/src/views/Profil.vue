@@ -16,7 +16,7 @@
         <div class="retour">{{ message.email }}</div>
         <input @keyup="verificationPassword()" type="password" placeholder="Mot de passe" v-model="formulaire.password" />
         <div class="retour">{{ message.password }}</div>
-        <input @keyup="verificationConfirmer()" type="password" placeholder="Confirmer" v-model="formulaire.confirmer" />
+        <input @keyup="verificationConfirmer()" type="password" placeholder="Confirmer nouveau" v-model="formulaire.confirmer" />
         <div class="retour">{{ message.confirmer }}</div>
         <input @keyup="verificationNom()" type="text" placeholder="Prénom Nom" v-model="formulaire.nom" required />
         <div class="retour">{{ message.nom }}</div>
@@ -171,23 +171,58 @@ methods: {
                 this.message.valider = 'Pas de modifications';
                 return false;
             }
+            // modifier_avatar en 1 ou 0 pour traitement coté serveur
+            if (this.formulaire.modifier_avatar == true) {
+                this.formulaire.modifier_avatar = 1;
+            }
+                else {
+                    this.formulaire.modifier_avatar = 0;
+                }
             // vérification conformité des données
             if ((this.verificationEmail() == true) && 
                 (this.verificationPassword() == true || ((this.formulaire.confirmer == '') && (this.formulaire.password == ''))) && 
                 (this.verificationConfirmer() == true || ((this.formulaire.confirmer == '') && (this.formulaire.password == ''))) && 
                 (this.verificationNom() == true)) {
-                const connexion = {
-                    email:email,
-                    password:this.formulaire.password,
-                    nom:nom,
-                    modifier_avatar:this.formulaire.modifier_avatar,
-                    fichier:fichier
-                }
-                // envoie des données
-                console.table(connexion);
-                this.message.valider = '';
-                this.formulaire.password == '';
-                this.formulaire.confirmer == '';
+
+                    const formData = new FormData();
+                    formData.append("email",email);
+                    formData.append("password",this.formulaire.password);
+                    formData.append("nom",nom);
+                    formData.append("modifier_avatar",this.formulaire.modifier_avatar);
+                    formData.append("image",fichier);
+
+                    //console.table(fichier);
+                    //console.log(this.formulaire.modifier_avatar);
+
+                    console.table(formData);
+                    // activation du loader
+                    this.$store.state.loader = true;
+
+                    // on passe une requete avec le token dans le header, pour vérifier la connexion
+                    this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
+                    this.axios.post('http://localhost:3000/api/profil/ModifierProfil',formData, {headers:{'Content-Type': fichier.type}}).then((reponse)=>{
+
+                        // fermeture du loader
+                        this.$store.state.loader = false;
+                        
+                        this.message.valider = reponse.data.message;
+
+                        // on met à jour la data globale
+                        this.$store.state.compte = reponse.data;
+
+                        // on met à jour le localstorage
+                        localStorage.setItem('compte',JSON.stringify(this.$store.state.compte));
+
+                        console.log('localstorage après modifs : ');
+                        console.table(JSON.parse(localStorage.getItem('compte')));
+                    })
+                    .catch((error) => {
+                        this.$store.state.loader = false;
+                        this.message.valider = error;
+                    })
+
+                    this.formulaire.password == '';
+                    this.formulaire.confirmer == '';
             }
             else {
                 this.message.valider = 'Le formulaire est invalide';
@@ -225,20 +260,25 @@ methods: {
         },
         chargementPage: function() {
 
-            // on récupère les infos de compte et connexion dans le localStorage
-            this.$store.state.compte = JSON.parse(localStorage.getItem('compte'));
+            // on récupère les infos de compte dans le localStorage
+            this.$store.state.compte.id = JSON.parse(localStorage.getItem('compte')).id;
+            this.$store.state.compte.admin = JSON.parse(localStorage.getItem('compte')).admin;
+            this.$store.state.compte.nom = JSON.parse(localStorage.getItem('compte')).nom;
+            this.$store.state.compte.email = JSON.parse(localStorage.getItem('compte')).email;
+            this.$store.state.compte.avatar = JSON.parse(localStorage.getItem('compte')).avatar;
 
             // activation du loader
             this.$store.state.loader = true;
 
             // on passe une requete avec le token dans le header, pour vérifier la connexion
-            this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
-            this.axios.get('http://localhost:3000/api/profil/acces').then((reponse)=>{
+            this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
+            this.axios.get('http://localhost:3000/api/profil/InfosProfil').then((reponse)=>{
+
             // fermeture du loader
             this.$store.state.loader = false;
 
             // on ajoute le token aux données du compte mise à jour'
-            reponse.data.token = this.$store.state.compte.token;
+            reponse.data.token = JSON.parse(localStorage.getItem('compte')).token;
             // mise à jour des informations du compte dans les datas globales, et dans le localStorage
             this.$store.state.compte = reponse.data;
             localStorage.setItem('compte',JSON.stringify(reponse.data));

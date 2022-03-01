@@ -6,10 +6,11 @@ import Forum from '../views/Forum.vue'
 import Legal from '../views/Legal.vue'
 
 const routes = [
-  {
+  /*{
     path: '/',
-    redirect: '/connexion'
-  },
+    //redirect: window.location.href = 'http://'+location.host+'/?#/connexion'
+    redirect: window.location.href = location.href+'?#'
+  },*/
   {
     path: '/connexion',
     name: 'Connexion',

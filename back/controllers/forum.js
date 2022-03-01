@@ -1,78 +1,7 @@
-const Thing = require('../models/Sauces');
 const fs = require('fs');
 const db = require('../models/db');
 const { query } = require('express');
-
-exports.createThing = (req, res, next) => {
-  const thingObject = JSON.parse(req.body.sauce);
-  // l'id est généré automatiquement par la BDD
-  delete thingObject._id;
-  // initialisation des likes à 0
-  thingObject.likes=0;
-  thingObject.dislikes=0;
-  // création de l'objet à insérer dans la BDD
-  const thing = new Thing({
-    ...thingObject,
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-  });
-  thing.save()
-    .then(() => res.status(201).json({ message: 'Objet enregistré !'}))
-    .catch(error => res.status(400).json({ error }));
-};
-
-exports.getOneThing = (req, res, next) => {
-    Thing.findOne({ _id: req.params.id})
-      .then(thing => {
-        // recherche de userId dans les likes ou dislike de la sauce ( -1 == pas d'occurence )
-        const userLiked = thing.usersLiked.indexOf(req.auth.userId);
-        const userDisliked = thing.usersDisliked.indexOf(req.auth.userId);
-        // n'afficher que l'identifiant de l'utilisateur dans la liste des likes et dislikes, pour confidentialité.
-        if (userLiked > -1){thing.usersLiked = [req.auth.userId]}
-        else {thing.usersLiked = [];}
-        if (userDisliked > -1){thing.usersDisliked = [req.auth.userId]}
-        else {thing.usersDisliked = [];}
-        res.status(200).json(thing);
-      })
-      .catch(error => res.status(400).json({ error }));
-  }
-
-exports.modifyThing = (req, res, next) => {
-
-  let thingObject = {};
-  // Si nouvelle image
-  if(req.file){
-    thingObject = {...JSON.parse(req.body.sauce),imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`};
-    // recherche du lien de l'ancienne image pour suppression
-    Thing.findOne({ _id: req.params.id})
-      .then(thing => {
-        const filename = thing.imageUrl.split('/images/')[1];
-        // suppression de l'ancienne image
-        fs.unlink(`images/${filename}`,(err)=>{if (err) throw err;})
-      })
-      .catch(error => res.status(400).json({ error }));
-  }
-  else{
-    thingObject = { ...req.body };
-  }
-  Thing.updateOne({ _id: req.params.id }, { ...thingObject, _id: req.params.id })
-  .then(() => res.status(200).json({ message: 'Objet modifié !'}))
-  .catch(error => res.status(400).json({ error }));
-};
-
-exports.deleteThing = (req, res, next) => {
-  Thing.findOne({ _id: req.params.id })
-    .then(thing => {
-      // si pas le bon ID, erreur
-      if(thing.userId !== req.auth.userId){res.status(401).json({ message: 'Non autorisé !'});return;}
-      const filename = thing.imageUrl.split('/images/')[1];
-      fs.unlink(`images/${filename}`, () => {
-        Thing.deleteOne({ _id: req.params.id })
-          .then(() => res.status(200).json({ message: 'Objet supprimé !'}))
-          .catch(error => res.status(400).json({ error }));
-      });
-    })
-    .catch(error => res.status(500).json({ error }));
-};
+const webp = require('webp-converter');
 
 exports.Vote = (req, res, next) => {
   if (!Number.isInteger(req.body.id_document + req.body.type + req.body.direction)) {
@@ -297,6 +226,214 @@ exports.postSignalement = (req, res, next) => {
           })
           .catch(error => res.status(500).json({ error }));
         }
+  })
+  .catch(error => res.status(500).json({ error }));
+}
+
+exports.postSupprimerDocument = (req, res, next) => {
+  // Vérification sécurité
+  const id_document = Number(req.body.id_document);
+  const type = Number(req.body.type);
+  let document = null;
+
+  // si le document à supprimer est un article
+  if (type == 0) {
+    db.sequelize.query("SELECT id_compte, image FROM article WHERE id_article = "+id_document+";")
+    .then(([resultat,metadata]) => {
+    // on vérifie que le client est propriétaire du document ou admin
+      if ((req.auth.userId == resultat[0].id_compte) || (req.auth.admin == 1)) {
+        // on supprime l'image de l'article s'il y en a une
+        if (resultat[0].image != '') {
+          fs.unlink('./images/'+resultat[0].image+'.webp', (error) => {if (error) throw error;});
+        }
+        //suppression, le paramètre DELETE ON CASCADE supprime les documents liés
+        db.sequelize.query("DELETE FROM article WHERE id_article = "+id_document+";")
+        .then(([resultat,metadata]) => {
+          res.status(200).json({ message: 'Article supprimé' });
+        })
+      }
+        else {
+          res.status(401).json({ message: 'Non authorisé' });
+        }
+    })
+  }
+    // si le document à supprimer est un commentaire (on récupère aussi l'id_article pour mettre à jour le compteur)
+    else {
+      db.sequelize.query("SELECT id_commentaire, id_article FROM commentaire WHERE id_commentaire = "+id_document+";")
+      .then(([resultat,metadata]) => {
+    // si le client est propriétaire du document ou admin, suppression, le paramètre DELETE ON CASCADE supprime les documents liés
+        if ((req.auth.userId == resultat[0].id_compte) || (req.auth.admin == 1)) {
+          db.sequelize.query("DELETE FROM commentaire WHERE id_commentaire = "+id_document+";")
+          // mise à jour du compteur sur l'article
+          db.sequelize.query("UPDATE article SET commentaire = commentaire-1 WHERE id_article = "+resultat[0].id_article+";")
+          .then(([resultat,metadata]) => {
+            res.status(200).json({ message: 'Commentaire supprimé' });
+          })
+        }
+          else {
+            res.status(401).json({ message: 'Non authorisé' });
+          }
+      })
+    }
+}
+
+exports.postConforme = (req, res, next) => {
+  // Vérification sécurité
+  const id_document = Number(req.body.id_document);
+  const type = Number(req.body.type);
+  let document = null;
+
+  // Seul l'admin peut supprimer les signalements
+  if (req.auth.admin != 1) {
+    res.status(401).json({ message: 'Non authorisé' });
+  }
+    else {
+      // si le document conforme est un article
+      if (type == 0) {
+        db.sequelize.query("DELETE FROM signalement WHERE id_article = "+id_document+";")
+        .then(([resultat,metadata]) => {
+          // mise à jour du compteur sur l'article
+          db.sequelize.query("UPDATE article SET signalement=0 WHERE id_article = "+id_document+";")
+          .then(([resultat,metadata]) => {
+            res.status(200).json({ message: 'Signalements supprimés' });
+          })
+          .catch(error => res.status(500).json({ error }));
+        })
+        .catch(error => res.status(500).json({ error }));
+      }
+        // si le document conforme est un commentaire
+        else {
+          db.sequelize.query("DELETE FROM signalement WHERE id_commentaire = "+id_document+";")
+          .then(([resultat,metadata]) => {
+            // mise à jour du compteur sur le commentaire
+            db.sequelize.query("UPDATE commentaire SET signalement=0 WHERE id_commentaire = "+id_document+";")
+            .then(([resultat,metadata]) => {
+              res.status(200).json({ message: 'Signalements supprimés' });
+            })
+            .catch(error => res.status(500).json({ error }));
+          })
+          .catch(error => res.status(500).json({ error }));
+        }
+  }
+}
+
+exports.postCommentaire = (req, res, next) => {
+  // Vérification sécurité
+  const id_article = Number(req.body.id_article);
+  if (req.body.texte.length > 1000) {
+    res.status(401).json({ message: 'Non authorisé' });
+  }
+
+  // On vérifie que l'article existe toujours
+  db.sequelize.query("SELECT id_article FROM article WHERE id_article = "+id_article+";")
+  .then(([resultat,metadata]) => {
+    if (resultat[0].id_article == null) {
+      res.status(404).json({ message: 'Article inexistant' });
+    }
+    else {
+
+      const date = Date.now();
+      // On enregistre le commentaire
+      db.sequelize.query("INSERT INTO commentaire (id_compte, id_article, texte, date, upvote, downvote, signalement, ip) VALUES ("+req.auth.userId+", "+id_article+", \'"+req.body.texte+"\', "+date+", '0', '0', '0', \'"+req.ip+"\');")
+      .then(([resultat,metadata]) => {
+        // Mise à jour du compteur de commentaires sur l'article
+        db.sequelize.query("UPDATE article SET commentaire=commentaire+1 WHERE id_article = "+id_article+";")
+        .then(([resultat,metadata]) => {
+          // Récupération des commentaires de l'article
+          db.sequelize.query("SELECT commentaire.id_commentaire, commentaire.id_compte, commentaire.id_article, commentaire.texte, commentaire.date, commentaire.upvote, commentaire.downvote, commentaire.signalement, compte.nom, compte.avatar FROM commentaire JOIN compte ON commentaire.id_compte = compte.id_compte WHERE commentaire.id_article = "+id_article+";")
+            .then(([commentaires,metadata]) => {
+              if (!commentaires) {
+                return res.status(401).json({ message: 'Commentaires non trouvés' }) 
+              }
+              // récupération des votes commentaires du client
+              db.sequelize.query("SELECT id_commentaire, vote FROM vote_commentaire WHERE id_compte = \'"+req.auth.userId+"\';")
+              .then(([votes,metadata]) => {
+                if (!votes) {
+                  return res.status(401).json({ message: 'Votes non trouvés' });
+                }
+                res.status(200).json({
+                  // on renvoie un tableau de commentaires et les votes du client
+                  commentaires,votes,message: 'Commentaire enregistré'
+                });
+              })
+              .catch(error => res.status(500).json({ error }));
+            })
+            .catch(error => res.status(500).json({ error }));
+        })
+        .catch(error => res.status(500).json({ error }));
+      })
+      .catch(error => res.status(500).json({ error }));
+    }
+  })
+  .catch(error => res.status(500).json({ error }));
+}
+
+exports.postArticle = (req, res, next) => {
+  // Vérification sécurité
+  if ((req.body.titre.length > 100) || (req.body.texte.length > 2000)) {
+    res.status(401).json({ message: 'Erreur de taille' });
+  }
+
+  let image = '';
+
+  if (req.file != null) {
+
+    // on converti l'image avec webp, on donne les droits en écriture
+    webp.grant_permission();
+
+    // on récupère l'extention de l'image
+    const extention = req.file.mimetype.split('/')[1];
+
+    // on converti en webp selon l'extention
+    if (extention == "gif") {
+      webp.gwebp('./images/'+req.file.filename,'./images/'+req.file.filename+'.webp',"-q 80",logging="-v")
+      .then(()=>{
+        fs.unlink('./images/'+req.file.filename, (error) => {if (error) throw error;});
+      })
+      .catch(error => res.status(500).json({ error }));
+    }
+    if ((extention == "jpg") || (extention == "jpeg") || (extention == "png")) {
+      webp.cwebp('./images/'+req.file.filename,'./images/'+req.file.filename+'.webp',"-q 80",logging="-v")
+      .then(()=>{
+        fs.unlink('./images/'+req.file.filename, (error) => {if (error) throw error;});
+      })
+      .catch(error => res.status(500).json({ error }));
+    }
+    // si webp, on ajoute simplement l'extention
+    if (extention == "webp") {
+      fs.rename('./images/'+req.file.filename,'./images/'+req.file.filename+'.webp',(error) => {if (error) throw error;})
+    }
+    image = req.file.filename;
+  }
+  else {
+    image = '';
+  }
+
+  const date = Date.now();
+
+  // On enregistre l'article'
+  db.sequelize.query("INSERT INTO article (id_compte, titre, image, texte, date, upvote, downvote, commentaire, signalement, ip) VALUES ("+req.auth.userId+", \'"+req.body.titre+"\', \'"+image+"\', \'"+req.body.texte+"\', "+date+", '0', '0', '0', '0', \'"+req.ip+"\');")
+  .then(([resultat,metadata]) => {
+    // Récupération des articles 
+    db.sequelize.query("SELECT article.id_article, article.id_compte, article.titre, article.image, article.texte, article.date, article.upvote, article.downvote, article.commentaire, article.signalement, compte.nom, compte.avatar FROM article JOIN compte ON article.id_compte = compte.id_compte;")
+    .then(([articles,metadata]) => {
+      if (!articles) {
+        return res.status(401).json({ message: 'Articles non trouvés' }) 
+      }
+      // Récupération des votes du client
+      db.sequelize.query("SELECT id_article, vote FROM vote_article WHERE id_compte = \'"+req.auth.userId+"\';")
+      .then(([votes,metadata]) => {
+        if (!votes) {
+          return res.status(401).json({ message: 'Votes non trouvés' });
+        }
+        res.status(200).json({
+          // on renvoie un tableau de commentaires et les votes du client
+          articles,votes,message: 'Article publié'
+        });
+      })
+      .catch(error => res.status(500).json({ error }));
+    })
+    .catch(error => res.status(500).json({ error }));
   })
   .catch(error => res.status(500).json({ error }));
 }

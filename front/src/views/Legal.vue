@@ -45,6 +45,27 @@
         </p>
     </div>
 </template>
+<script>
+export default {
+name:"app",
+    methods: {
+        chargementPage: function() {
+            // on récupère les infos de compte et connexion dans le localStorage si elles existent
+            if (JSON.parse(localStorage.getItem('compte')) != null) {
+                this.$store.state.compte.id = JSON.parse(localStorage.getItem('compte')).id;
+                this.$store.state.compte.admin = JSON.parse(localStorage.getItem('compte')).admin;
+                this.$store.state.compte.nom = JSON.parse(localStorage.getItem('compte')).nom;
+                this.$store.state.compte.email = JSON.parse(localStorage.getItem('compte')).email;
+                this.$store.state.compte.avatar = JSON.parse(localStorage.getItem('compte')).avatar;
+            }
+        }
+    },
+        created: function() {
+            this.chargementPage();
+    }
+}
+</script>
+
 <style lang="scss" scoped>
 
 $color-active:orange;

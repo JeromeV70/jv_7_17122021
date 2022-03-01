@@ -107,18 +107,17 @@ methods: {
                 // fermeture du loader
                 this.$store.state.loader = false;
                 // on récupère le token d'authentification pour les futures requêtes
-                this.axios.defaults.headers.common['Authorization'] = 'Bearer '+reponse.data.token;
-
-                // On enregistre les infos du compte dans la data globale (+ token)
-                this.$store.state.compte.token = reponse.data;
+                this.axios.defaults.headers.common['Authorization'] = reponse.data.token;
 
                 // On enregistre les infos du compte dans le localStorage (+ token)
                 localStorage.setItem('compte',JSON.stringify(reponse.data));
 
-                console.log('reponse.data : ');
-                console.table(reponse.data);
-                console.log('$store.state.compte : ');
-                console.table(this.$store.state.compte);           
+                // ... et dans la data globale
+                this.$store.state.compte.id = reponse.data.id;
+                this.$store.state.compte.admin = reponse.data.admin;
+                this.$store.state.compte.nom = reponse.data.nom;
+                this.$store.state.compte.email = reponse.data.email;
+                this.$store.state.compte.avatar = reponse.data.avatar;
 
                 // redirection vers la page forum
                 this.$router.push('/forum');

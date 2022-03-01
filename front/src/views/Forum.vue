@@ -1,6 +1,6 @@
 <template>
     <section>
-        <div>{{ $store.state.compte.id }}</div>
+        <!--<div>{{ $store.state.compte.id }}</div>-->
         <button @click="test()">TEST</button>
         <!-- creation d'un nouvel article -->
         <div class="box-bouton-retour">
@@ -29,8 +29,7 @@
 
         <!-- boucle pour afficher tous les articles du plus récent (dernier ID) au plus ancien (permier ID) -->
         <div v-for="article in articles.slice().reverse()" :key="article">
-
-            <article :data-id='article.id_article' :data-compte='article.id_compte'>
+            <article v-if="article.id_article != null" :data-id='article.id_article' :data-compte='article.id_compte'>
                 <!-- tête de l'article : avatar, nom et date-->
                 <div class="top">
                     <div class="nom" :data-id='article.id_compte'>
@@ -43,7 +42,7 @@
                 <!-- titre de l'article -->
                 <div class="titre">{{ article.titre }}</div>
                 <!-- image de l'article -->
-                <img v-if="article.image !=''" :src="'http://localhost:3000/images/'+article.image+'.webp'" alt="image"/>
+                <img v-if="article.image != ''" :src="'http://localhost:3000/images/'+article.image+'.webp'" alt="image"/>
                 <!-- texte de l'article -->
                 <div class="texte">{{ article.texte }}</div>
                 <!-- bloc boutons de vote, commentaires, signalement, suppression. Affichage de boutons supplémentaires pour l'admin-->
@@ -52,8 +51,8 @@
                     <button @click="vote(article.id_article,0,0)" :class="'smallbutton '+feedback(article.id_article,0,0)" tabindex="0" title="downvote"><img src='../assets/down.svg' alt="vote_button"/>{{ article.downvote }}</button>
                     <button @click="afficherCommentaire(article.id_article)" class="smallbutton" tabindex="0" title="commentaires"><img src='../assets/comment.svg' alt="commentaires"/>{{ article.commentaire }}</button>
                     <button @click="afficherSignalement(article.id_article,null)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ article.signalement }}</button>
-                    <button v-if="$store.state.compte.admin == true" @click="conforme(article.id_article,1)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
-                    <button v-if="($store.state.compte.id == article.id_compte) || ($store.state.compte.admin == true)" @click="supprimerDocument(article.id_article,1)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
+                    <button v-if="$store.state.compte.admin == true" @click="conforme(article.id_article,0)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
+                    <button v-if="($store.state.compte.id == article.id_compte) || ($store.state.compte.admin == true)" @click="supprimerDocument(article.id_article,0)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
                     <button v-if="$store.state.compte.admin == true" @click="kill(article.id_compte)" class="smallbutton" tabindex="0" title="bannir"><img src='../assets/dead.svg' alt="bannir"/></button>
                 </div>
                 <!-- bloc de signalement article, affiché si le bouton signalement est cliqué -->
@@ -87,47 +86,50 @@
                         <div class="retour">{{ message.commentaire }}</div>
                     </div>
                 </div>
-                <blockquote v-for="com in commentaires" :key="com" :data-id='com.id_commentaire' :data-compte='com.id_compte' class="commentaire">
-                    <!-- tête du commentaire : avatar, nom et date-->
-                    <div class="top">
-                        <div class="nom" :data-id='com.id_compte'>
-                            <img v-if="com.avatar == 1" :src="'http://localhost:3000/images/'+com.id_compte+'.webp'" alt='avatar' title='avatar'/>
-                            <img v-else :src="require('../assets/0.webp')" alt='avatar' title='avatar'/>
-                            {{ com.nom }}
-                        </div>
-                        <div class="date">{{ date_format(com.date) }}</div>
-                    </div>
-                    <!-- texte du commentaire -->
-                    <div class="texte">{{ com.texte }}</div>
-                    <!-- bloc boutons de vote, commentaires, signalement, suppression -->
-                    <div class="bottom">
-                        <button @click="vote(com.id_commentaire,1,1)" :class="'smallbutton '+feedback(com.id_commentaire,1,1)" tabindex="0" title="upvote"><img src='../assets/up.svg' alt="vote_button"/>{{ com.upvote }}</button>
-                        <button @click="vote(com.id_commentaire,1,0)" :class="'smallbutton '+feedback(com.id_commentaire,1,0)" tabindex="0" title="downvote"><img src='../assets/down.svg' alt="vote_button"/>{{ com.downvote }}</button>
-                        <button @click="afficherSignalement(com.id_article,com.id_commentaire)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ com.signalement }}</button>
-                        <button v-if="$store.state.compte.admin == true" @click="conforme(com.id_commentaire,2)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
-                        <button v-if="$store.state.compte.id == com.id_compte || ($store.state.compte.admin == true)" @click="supprimerDocument(com.id_commentaire,2)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
-                        <button v-if="$store.state.compte.admin == true" @click="kill(com.id_compte)" class="smallbutton" tabindex="0" title="bannir"><img src='../assets/dead.svg' alt="bannir"/></button>
-                    </div>
-                    <!-- bloc de signalement commentaire, affiché si le bouton signalement est cliqué -->
-                    <div v-if="(signal.id_article == article.id_article) && (signal.id_commentaire == com.id_commentaire)" class="signal" :id="'signal'+com.id_commentaire">
-                        <div v-if="$store.state.compte.admin == false">
-                            <div v-for="(motif, index) in motifsSignalement" :key="index">
-                                <div class="signal-element"><input type=radio :id="motif" name="signal" :value=index /><label :for=motif>{{motif}}</label></div>
+                <!-- bloc pour afficher les commentaires en boucles -->
+                <div v-for="com in commentaires" :key="com">
+                    <blockquote v-if="com.id_commentaire != null" :data-id='com.id_commentaire' :data-compte='com.id_compte' class="commentaire">
+                        <!-- tête du commentaire : avatar, nom et date-->
+                        <div class="top">
+                            <div class="nom" :data-id='com.id_compte'>
+                                <img v-if="com.avatar == 1" :src="'http://localhost:3000/images/'+com.id_compte+'.webp'" alt='avatar' title='avatar'/>
+                                <img v-else :src="require('../assets/0.webp')" alt='avatar' title='avatar'/>
+                                {{ com.nom }}
                             </div>
-                            <button @click="envoiSignalement()" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
-                            <div class="retour">{{ message.signalement }}</div>
+                            <div class="date">{{ date_format(com.date) }}</div>
                         </div>
-                        <div v-else>
-                            <!-- Si admin, afficher les signalements du commentaire si le bouton signalement est cliqué-->
-                            <div v-for="signalement in signalements" :key="signalement" class="box-signal">
-                                <div class="box-signal-motif" >{{ motifSignalement(signalement.motif) }}</div>
-                                <div class="box-signal-compte">{{ signalement.id_compte }}</div>
-                                <div class="box-signal-date">{{ date_format(signalement.date) }}</div>
+                        <!-- texte du commentaire -->
+                        <div class="texte">{{ com.texte }}</div>
+                        <!-- bloc boutons de vote, commentaires, signalement, suppression -->
+                        <div class="bottom">
+                            <button @click="vote(com.id_commentaire,1,1)" :class="'smallbutton '+feedback(com.id_commentaire,1,1)" tabindex="0" title="upvote"><img src='../assets/up.svg' alt="vote_button"/>{{ com.upvote }}</button>
+                            <button @click="vote(com.id_commentaire,1,0)" :class="'smallbutton '+feedback(com.id_commentaire,1,0)" tabindex="0" title="downvote"><img src='../assets/down.svg' alt="vote_button"/>{{ com.downvote }}</button>
+                            <button @click="afficherSignalement(com.id_article,com.id_commentaire)" class="smallbutton" tabindex="0" title="signaler"><img src='../assets/alert.svg' alt="signaler"/>{{ com.signalement }}</button>
+                            <button v-if="$store.state.compte.admin == true" @click="conforme(com.id_commentaire,1)" class="smallbutton" tabindex="0" title="conforme"><img src='../assets/safe.svg' alt="conforme"/></button>
+                            <button v-if="$store.state.compte.id == com.id_compte || ($store.state.compte.admin == true)" @click="supprimerDocument(com.id_commentaire,1)" class="smallbutton" tabindex="0" title="supprimer"><img src='../assets/delete.svg' alt="supprimer"/></button>
+                            <button v-if="$store.state.compte.admin == true" @click="kill(com.id_compte)" class="smallbutton" tabindex="0" title="bannir"><img src='../assets/dead.svg' alt="bannir"/></button>
+                        </div>
+                        <!-- bloc de signalement commentaire, affiché si le bouton signalement est cliqué -->
+                        <div v-if="(signal.id_article == article.id_article) && (signal.id_commentaire == com.id_commentaire)" class="signal" :id="'signal'+com.id_commentaire">
+                            <div v-if="$store.state.compte.admin == false">
+                                <div v-for="(motif, index) in motifsSignalement" :key="index">
+                                    <div class="signal-element"><input type=radio :id="motif" name="signal" :value=index /><label :for=motif>{{motif}}</label></div>
+                                </div>
+                                <button @click="envoiSignalement()" class="bigbutton" tabindex="0" title="envoyer"><img src='../assets/valid.svg' alt="envoyer"/></button>
                                 <div class="retour">{{ message.signalement }}</div>
                             </div>
+                            <div v-else>
+                                <!-- Si admin, afficher les signalements du commentaire si le bouton signalement est cliqué-->
+                                <div v-for="signalement in signalements" :key="signalement" class="box-signal">
+                                    <div class="box-signal-motif" >{{ motifSignalement(signalement.motif) }}</div>
+                                    <div class="box-signal-compte">{{ signalement.id_compte }}</div>
+                                    <div class="box-signal-date">{{ date_format(signalement.date) }}</div>
+                                    <div class="retour">{{ message.signalement }}</div>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </blockquote>
+                    </blockquote>
+                </div>
             </div>
         </div>
     </section>
@@ -171,8 +173,7 @@ data() {
 },
 methods: {
         test() {
-            console.table(this.articles);
-            console.table(this.commentaires);
+
         },
         // pour ouvrir l'explorateur de fichiers avec le clavier et choisir une image
         enter() {
@@ -228,13 +229,36 @@ methods: {
                     return false;
                 }
                 this.message.nouveau_article = '';
-                const article = {
-                    id_compte:this.$store.state.compte.id,
-                    titre:this.nouveau_article.title,
-                    image:this.nouveau_article.image,
-                    texte:this.nouveau_article.text,
-                };
-                console.table(article);
+
+                const formData = new FormData();
+                formData.append("image",this.nouveau_article.image);
+                formData.append("titre",this.nouveau_article.title);
+                formData.append("texte",this.nouveau_article.text);
+
+                // activation du loader
+                this.$store.state.loader = true;
+
+                // on passe la requete avec le token dans le header
+                this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
+                this.axios.post('http://localhost:3000/api/forum/postArticle',formData, {headers:{'Content-Type': this.nouveau_article.image.type}}).then((reponse)=>{
+
+                    // fermeture du loader
+                    this.$store.state.loader = false;
+
+                    this.articles = reponse.data.articles;
+                    this.votes.articles = reponse.data.votes;
+
+                    this.nouveau_article.title = '';
+                    this.nouveau_article.image = '';
+                    this.nouveau_article.text = '';
+                    this.supprimerImage();
+                    this.message.nouveau_article = reponse.data.message;
+                })
+                .catch((error) => {
+                    this.$store.state.loader = false;
+                    this.message.nouveau_article = "Erreur";
+                    console.log('erreur',error);
+                })
          },
          // envoi d'un commentaire
         envoiCommentaire(id) {
@@ -242,9 +266,29 @@ methods: {
                     return false;
                 }
                 this.message.commentaire = '';
-                const commentaire = {id_compte:this.$store.state.compte.id,id_article:id,texte:this.nouveau_commentaire,date:Date.now()};
-                console.table(commentaire);
-                this.nouveau_commentaire='';
+                const commentaire = {id_article:id,texte:this.nouveau_commentaire};
+
+                // activation du loader
+                this.$store.state.loader = true;
+                // on passe la requete avec le token dans le header
+                this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
+                this.axios.post('http://localhost:3000/api/forum/postCommentaire',commentaire).then((reponse)=>{
+                    // fermeture du loader
+                    this.$store.state.loader = false;
+
+                    console.table(reponse.data.commentaires);
+                    console.table(reponse.data.votes);
+
+                    this.commentaires = reponse.data.commentaires;
+                    this.votes.commentaires = reponse.data.votes;
+
+                    this.message.commentaire = reponse.data.message;
+                    this.nouveau_commentaire='';
+                })
+                .catch((error) => {
+                    this.$store.state.loader = false;
+                    console.log('erreur',error);
+                })
         },
         // afficher les commentaires
         afficherCommentaire(id_article) {
@@ -256,27 +300,27 @@ methods: {
                     // activation du loader
                     this.$store.state.loader = true;
                     // on passe la requete avec le token dans le header
-                    this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+                    this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
                     this.axios.get('http://localhost:3000/api/forum/getCommentaires',{params:{id:id_article}}).then((reponse)=>{
-                    // fermeture du loader
-                    this.$store.state.loader = false;
+                        // fermeture du loader
+                        this.$store.state.loader = false;
 
-                    // on charge les commentaires
-                    this.commentaires = reponse.data.commentaires;
-                    this.votes.commentaires = reponse.data.votes;
+                        // on charge les commentaires
+                        this.commentaires = reponse.data.commentaires;
+                        this.votes.commentaires = reponse.data.votes;
 
-                    //console.table(this.commentaires);
-                    //console.table(this.reponse.data.votes);
+                        //console.table(this.commentaires);
+                        //console.table(this.reponse.data.votes);
 
-                    // on affiches les commentaires
-                    this.afficher_commentaires = id_article;
-                    // on masque le signalement quand on affiche les commentaires
-                    this.signal.id_article = null;
-                    this.signal.id_commentaire = null;
+                        // on affiches les commentaires
+                        this.afficher_commentaires = id_article;
+                        // on masque le signalement quand on affiche les commentaires
+                        this.signal.id_article = null;
+                        this.signal.id_commentaire = null;
                     })
                     .catch((error) => {
-                    this.$store.state.loader = false;
-                    console.log('erreur',error);
+                        this.$store.state.loader = false;
+                        console.log('erreur',error);
                     })
                 }
          },
@@ -304,17 +348,17 @@ methods: {
                         // activation du loader
                         this.$store.state.loader = true;
                         // on passe la requete avec le token dans le header
-                        this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+                        this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
                         this.axios.get('http://localhost:3000/api/forum/getSignalements',{params:{id_article,id_commentaire}}).then((reponse)=>{
-                        // fermeture du loader
-                        this.$store.state.loader = false;
+                            // fermeture du loader
+                            this.$store.state.loader = false;
 
-                        // on charge les signalements
-                        this.signalements = reponse.data.signalements;
+                            // on charge les signalements
+                            this.signalements = reponse.data.signalements;
                         })
                         .catch((error) => {
-                        this.$store.state.loader = false;
-                        console.log('erreur',error);
+                            this.$store.state.loader = false;
+                            console.log('erreur',error);
                         })
                     }
                 }
@@ -339,7 +383,7 @@ methods: {
                     // activation du loader
                     this.$store.state.loader = true;
                     // on passe la requete avec le token dans le header
-                    this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+                    this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
                     this.axios.post('http://localhost:3000/api/forum/postSignalement',signal).then((reponse)=>{
                     // fermeture du loader
                     this.$store.state.loader = false;
@@ -373,51 +417,79 @@ methods: {
         },
         // effacer un article ou un commentaire
         supprimerDocument(id,type) {
-            const supprimerDocument = {id_document:id,type:type};// type = 1 : article, type = 2 : commentaire
-            console.table(supprimerDocument);
-            let selector = '';
-            if (type == 1) {
-                    selector = "article";
-                    // masquer les commentaires et l'espace de rédaction avant d'effacer l'article
-                    this.afficher_commentaires='';
-            }
-            if (type == 2) {
-                selector = "blockquote";
-            }
-            document.querySelector(''+selector+'[data-id="'+id+'"]').remove();
+            // type = 0 : article, type = 1 : commentaire
+            const supprimerDocument = {id_document:id,type:type};
+
+            // activation du loader
+            this.$store.state.loader = true;
+
+             // requête
+            this.axios.post('http://localhost:3000/api/forum/postSupprimerDocument',supprimerDocument).then((reponse)=>{
+
+                // fermeture du loader
+                this.$store.state.loader = false;
+
+                console.log(reponse);
+           
+                // supprimer le document sur la page (type = 0 : article, sinon commentaire)
+                if (type == 0) {
+                    for (let element of this.articles){
+                        if (element.id_article == id) {
+                            element.id_article = null;
+                            this.afficher_commentaires = '';
+                        }
+                    }
+                }
+                else {
+                    for (let element of this.commentaires) {
+                        if (element.id_commentaire == id) {
+                            element.id_commentaire = null;
+                            // récupérer l'id_article pour décrémenter le compteur commentaire de l'article
+                            const id_article = element.id_article;
+                            for(let article of this.articles)
+                            {
+                                if (article.id_article == id_article) {
+                                    article.commentaire--;
+                                }
+                            }
+                        }
+                    }
+                }
+            })
+            .catch((error) => {
+                console.log('erreur',error);
+            })
         },
         // envoi d'un vote up ou down sur un article ou commentaire
         vote(id_document,type,direction) {// type = 0 : article, type = 1 : commentaire
 
             // on prépare la requête
             const vote = {id_document:id_document,type:type,direction:direction};
-            console.log('envoie du vote : ');
-            console.table(vote);
 
             // activation du loader
             this.$store.state.loader = true;
 
             // requête
             this.axios.post('http://localhost:3000/api/forum/Vote',vote).then((reponse)=>{
-            console.log(reponse);
 
-            // fermeture du loader
-            this.$store.state.loader = false;
+                console.log(reponse);
+                // fermeture du loader
+                this.$store.state.loader = false;
 
-            // on choisi la liste article ou commentaire à modifier, selon le document
-            let liste_vote = null;
-            let liste_document = null;
-            let document = null;
-            if (type == 0) {
-                liste_vote = this.votes.articles;
-                liste_document = this.articles;
-                document = 'id_article';
-            }
-            else {
-                liste_vote = this.votes.commentaires;
-                liste_document = this.commentaires;
-                document = 'id_commentaire';
-            }
+                // on choisi la liste article ou commentaire à modifier, selon le document
+                let liste_vote = null;
+                let liste_document = null;
+                let document = null;
+                if (type == 0) {
+                    liste_vote = this.votes.articles;
+                    liste_document = this.articles;
+                    document = 'id_article';
+                }
+                else {
+                    liste_vote = this.votes.commentaires;
+                    liste_document = this.commentaires;
+                    document = 'id_commentaire';
+                }
                 let ancien_vote = null;
                 // on supprime le précédent état de vote dans le tableau, s'il existe
                 for (const element of liste_vote) {
@@ -463,14 +535,10 @@ methods: {
                 // on met à jour le compteur de vote du document
                 for (const element of liste_document) {
                     if (element[document] == id_document) {
-                        console.log('maj compteur : ',element,'up:',up,'down:',down);
                         element.upvote = element.upvote + up;
                         element.downvote = element.downvote + down;
                     }
                 }
-
-                console.log('votes.articles');
-                console.table(this.votes.articles);
             })
             .catch((error) => {
                 console.log('erreur',error);
@@ -542,57 +610,105 @@ methods: {
             this.message.nouveau_article = 'Image supprimée.';
         },
         conforme(id,type) {
-            const conforme = {id_document:id,type:type};// type = 1 : article, type = 2 : commentaire
-            console.table(conforme);
-            this.signalements = '';
+            const conforme = {id_document:id,type:type};// type = 0 : article, type = 1 : commentaire
+
+            // activation du loader
+            this.$store.state.loader = true;
+
+            // on passe la requete avec le token dans le header
+            this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
+            this.axios.post('http://localhost:3000/api/forum/postConforme',conforme).then((reponse)=>{
+
+                // fermeture du loader
+                this.$store.state.loader = false;
+
+                console.log(reponse.data.message);
+
+                // mettre à jour le compteur de signalement à 0
+                if (type == 1) {
+                    for (const element of this.commentaires){
+                        if (element.id_commentaire == id){
+                            element.signalement = 0;
+                        }
+                    }
+                }
+                else {
+                    for (const element of this.articles){
+                        if (element.id_article == id){
+                            element.signalement = 0;
+                        }
+                    }
+                }
+
+                this.signalements = '';
+            })
+            .catch((error) => {
+                this.$store.state.loader = false;
+                console.log('erreur',error);
+            })
         },
         kill(id_compte) {
-            // supprimer tous les articles et commentaires du compte banni, sur la page
-            const liste_article = document.querySelectorAll('article[data-compte="'+id_compte+'"]');
-            for (const element of liste_article) {
-                    // si un article est effacé pendant que ses commentaires sont affichés, alors ils sont masqués.
-                    if (element.getAttribute('data-id') == this.afficher_commentaires) {
-                        this.afficher_commentaires = '';
+
+            // activation du loader
+            this.$store.state.loader = true;
+            const identifiant = {id_compte:id_compte};
+
+            // on passe la requete avec le token dans le header
+            this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
+            this.axios.post('http://localhost:3000/api/profil/SupprimerCompte',identifiant).then((reponse)=>{
+                // fermeture du loader
+                this.$store.state.loader = false;
+
+                console.log(reponse.data.message);
+
+                // supprimer tous les articles et commentaires du compte sur la page
+                for (let element of this.articles){
+                    if (element.id_compte == id_compte) {
+                        element.id_article = null;
                     }
-                    element.remove();
                 }
-            const liste_commentaire = document.querySelectorAll('blockquote[data-compte="'+id_compte+'"]');
-            for (const element of liste_commentaire) {
-                    element.remove();
+                for (let element of this.commentaires){
+                    if (element.id_compte == id_compte) {
+                        element.id_commentaire = null;
+                        // récupérer l'id_article pour décrémenter le compteur commentaire de l'article
+                        const id_article = element.id_article;
+                        for(let article of this.articles)
+                        {
+                            if (article.id_article == id_article) {
+                                article.commentaire--;
+                            }
+                        }
+                    }
                 }
-            // supprimer tous commentaires du compte banni, dans la data
-            let liste_data = [];
-            for (let [index,element] of this.commentaires.entries()) {
-                    if(element.id_compte == id_compte){
-                    // on récupère les index des commentaires à supprimer dans le tableau des commentaires
-                    liste_data.push(index);
-                }
-            }
-            // on inverse le tableau d'index pour commencer par le dernier, afin de ne pas sauter des lignes avec la méthode splice()
-            liste_data = liste_data.reverse();
-            for (const element of liste_data) {
-                this.commentaires.splice(element,1);
-            }
+            })
+            .catch((error) => {
+                this.$store.state.loader = false;
+                console.log('erreur',error);
+            })
         },
         chargementPage: function() {
             // on récupère les infos de compte et connexion dans le localStorage
-            this.$store.state.compte = JSON.parse(localStorage.getItem('compte'));
+            this.$store.state.compte.id = JSON.parse(localStorage.getItem('compte')).id;
+            this.$store.state.compte.admin = JSON.parse(localStorage.getItem('compte')).admin;
+            this.$store.state.compte.nom = JSON.parse(localStorage.getItem('compte')).nom;
+            this.$store.state.compte.email = JSON.parse(localStorage.getItem('compte')).email;
+            this.$store.state.compte.avatar = JSON.parse(localStorage.getItem('compte')).avatar;
 
             // activation du loader
             this.$store.state.loader = true;
             // on passe la requete avec le token dans le header
-            this.axios.defaults.headers.common['Authorization'] = 'Bearer '+this.$store.state.compte.token;
+            this.axios.defaults.headers.common['Authorization'] = JSON.parse(localStorage.getItem('compte')).token;
             this.axios.get('http://localhost:3000/api/forum/getArticles').then((reponse)=>{
-            // fermeture du loader
-            this.$store.state.loader = false;
+                // fermeture du loader
+                this.$store.state.loader = false;
 
-            // on insert les articles et votes dans les variables correspondantes, pour les afficher
-            this.articles = reponse.data.articles;
-            this.votes.articles = reponse.data.votes;
+                // on insert les articles et votes dans les variables correspondantes, pour les afficher
+                this.articles = reponse.data.articles;
+                this.votes.articles = reponse.data.votes;
             })
             .catch((error) => {
-            this.$store.state.loader = false;
-            console.log('erreur',error);
+                this.$store.state.loader = false;
+                console.log('erreur',error);
             })
         }
     },
@@ -793,6 +909,8 @@ article {
     display:flex;
     flex-flow:row wrap;
     justify-content: center;
+    width:max-content;
+    margin:auto;
     .box-signal-motif {
         width:6.5em;
         font-weight:bold;

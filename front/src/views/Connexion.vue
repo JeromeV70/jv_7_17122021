@@ -81,22 +81,24 @@ methods: {
                 const connexion = {email:this.email,password:this.password}
                 // activation du loader
                 this.$store.state.loader = true;
-                console.table(connexion);
 
                 // requête de connexion
                 this.axios.post('http://localhost:3000/api/auth/login',connexion).then((reponse)=>{
                     // fermeture du loader
                     this.$store.state.loader = false;
-                    console.table(connexion);
 
                     // on récupère le token d'authentification pour les futures requêtes
-                    this.axios.defaults.headers.common['Authorization'] = 'Bearer '+reponse.data.token;
-
-                    // On enregistre les infos du compte dans la data globale (+ token)
-                    this.$store.state.compte.token = reponse.data;
+                    this.axios.defaults.headers.common['Authorization'] = reponse.data.token;
 
                     // On enregistre les infos du compte dans le localStorage (+ token)
                     localStorage.setItem('compte',JSON.stringify(reponse.data));
+
+                    // ... et dans la data globale
+                    this.$store.state.compte.id = reponse.data.id;
+                    this.$store.state.compte.admin = reponse.data.admin;
+                    this.$store.state.compte.nom = reponse.data.nom;
+                    this.$store.state.compte.email = reponse.data.email;
+                    this.$store.state.compte.avatar = reponse.data.avatar;
 
                     // redirection vers la page forum
                     this.$router.push('/forum');
@@ -110,11 +112,12 @@ methods: {
         chargementPage: function() {
             // déconnexion de la session en cours, au chargement de la page
             localStorage.removeItem('compte');
-            this.$store.state.compte.token = '';
+            // en cas de retour sur la page (dé)connexion, pour effacer les liens vers les pages authentifiées
+            this.$store.state.compte.id=null;
         }
     },
     created: function() {
-    this.chargementPage();
+        this.chargementPage();
     }
 }
 </script>

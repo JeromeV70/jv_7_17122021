@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 
 const auth = require('../middleware/auth');
-const profilCtrl = require('../controllers/profil');
+const profil = require('../controllers/profil');
+const multer = require('../middleware/multer-config');
 
-router.get('/acces', auth, profilCtrl.acces);
-//router.post('/login', userCtrl.login);
+router.get('/InfosProfil', auth, profil.InfosProfil);
+router.post('/SupprimerCompte',auth, profil.SupprimerCompte)
+router.post('/ModifierProfil', auth, multer, profil.ModifierProfil);
 
 module.exports = router;
