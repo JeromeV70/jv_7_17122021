@@ -1,8 +1,6 @@
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const mysql = require('mysql')
-const mysql2 = require('mysql2');
 const sequelize = require('sequelize');
 const passwordValidator = require('password-validator');
 const crypto = require('crypto');
@@ -64,7 +62,6 @@ exports.signup = (req, res, next) => {
         .catch(error => res.status(500).json({ error }));
       })
       .catch(error => res.status(500).json({ error }));
-
     })
     .catch(error => res.status(500).json({ error }));
   };

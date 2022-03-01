@@ -2,8 +2,6 @@ const fs = require('fs');
 const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
-const mysql = require('mysql')
-const mysql2 = require('mysql2');
 const sequelize = require('sequelize');
 const cryptoJS = require('crypto-js');
 const passwordValidator = require('password-validator');
@@ -49,9 +47,8 @@ exports.SupprimerCompte = (req, res, next) => {
   // Vérification sécurité
   const id_compte = Number(req.body.id_compte);
 
-  // Seul l'admin ou le client peut supprimer son compte
-  if ((req.auth.admin != 1) && (id_compte != req.auth.userId)) {
-    console.log(id_compte,req.auth.userId);
+  // Seul l'admin ou le client peut supprimer son compte, l'admin ne pas supprimer son propre compte
+  if (((req.auth.admin != 1) && (id_compte != req.auth.userId)) || (id_compte == 1)){
     res.status(401).json({ message: 'Non authorisé' });
   }
     else {
@@ -96,7 +93,6 @@ exports.SupprimerCompte = (req, res, next) => {
                       db.sequelize.query("SELECT id_commentaire FROM vote_commentaire WHERE id_compte = "+id_compte+" AND vote = 0;")
                       .then(([resultat,metadata]) => {
                         for (element of resultat){
-                          console.table(resultat);
                           // On met à jour le compteur downvote des commentaires concernés
                           db.sequelize.query("UPDATE commentaire SET downvote=downvote-1 WHERE id_commentaire = "+element.id_commentaire+";")
                           .then(([resultat,metadata]) => { })
@@ -104,14 +100,16 @@ exports.SupprimerCompte = (req, res, next) => {
                         }
 
                           // Suppression de l'avatar
-                          fs.unlink('./images/'+req.auth.userId+'.webp', (error) => {if (error) throw error;});
+                          if (fs.existsSync('./images/'+id_compte+'.webp')) {
+                            fs.unlink('./images/'+id_compte+'.webp', (error) => {if (error) throw error;});
+                          }
 
                           // Suppression des images des articles
                           db.sequelize.query("SELECT image FROM article WHERE id_compte = "+id_compte+";")
                           .then(([resultat,metadata]) => {
                             for (element of resultat) {
-                              if (element != '') {
-                                fs.unlink('./images/'+element+'.webp', (error) => {if (error) throw error;});
+                              if (element.image != '') {
+                                fs.unlink('./images/'+element.image+'.webp', (error) => {if (error) throw error;});
                               }
                             }
                           })

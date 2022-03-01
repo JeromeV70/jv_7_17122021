@@ -259,15 +259,18 @@ exports.postSupprimerDocument = (req, res, next) => {
   }
     // si le document à supprimer est un commentaire (on récupère aussi l'id_article pour mettre à jour le compteur)
     else {
-      db.sequelize.query("SELECT id_commentaire, id_article FROM commentaire WHERE id_commentaire = "+id_document+";")
+      db.sequelize.query("SELECT id_commentaire, id_article, id_compte FROM commentaire WHERE id_commentaire = "+id_document+";")
       .then(([resultat,metadata]) => {
-    // si le client est propriétaire du document ou admin, suppression, le paramètre DELETE ON CASCADE supprime les documents liés
+      // si le client est propriétaire du document ou admin, suppression, le paramètre DELETE ON CASCADE supprime les documents liés
         if ((req.auth.userId == resultat[0].id_compte) || (req.auth.admin == 1)) {
           db.sequelize.query("DELETE FROM commentaire WHERE id_commentaire = "+id_document+";")
-          // mise à jour du compteur sur l'article
-          db.sequelize.query("UPDATE article SET commentaire = commentaire-1 WHERE id_article = "+resultat[0].id_article+";")
-          .then(([resultat,metadata]) => {
-            res.status(200).json({ message: 'Commentaire supprimé' });
+          .then(([supprimer,metadata]) => {
+            // mise à jour du compteur sur l'article
+
+            db.sequelize.query("UPDATE article SET commentaire = commentaire-1 WHERE id_article = "+resultat[0].id_article+";")
+            .then(([resultat,metadata]) => {
+              res.status(200).json({ message: 'Commentaire supprimé' });
+            })
           })
         }
           else {

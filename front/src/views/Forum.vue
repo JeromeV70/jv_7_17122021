@@ -1,7 +1,5 @@
 <template>
     <section>
-        <!--<div>{{ $store.state.compte.id }}</div>-->
-        <button @click="test()">TEST</button>
         <!-- creation d'un nouvel article -->
         <div class="box-bouton-retour">
             <button @click="afficherArticle()" class="bigbutton" tabindex="0" title="nouvel article"><img src='../assets/plus.svg' alt="creer"/></button>
@@ -172,9 +170,6 @@ data() {
         }
 },
 methods: {
-        test() {
-
-        },
         // pour ouvrir l'explorateur de fichiers avec le clavier et choisir une image
         enter() {
             document.querySelector('#image_article img').click();
