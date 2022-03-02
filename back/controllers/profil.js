@@ -3,7 +3,6 @@ const bcrypt = require('bcrypt');
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const sequelize = require('sequelize');
-const cryptoJS = require('crypto-js');
 const passwordValidator = require('password-validator');
 const crypto = require('crypto');
 const db = require('../models/db');
@@ -83,7 +82,6 @@ exports.SupprimerCompte = (req, res, next) => {
                   db.sequelize.query("SELECT id_commentaire FROM vote_commentaire WHERE id_compte = "+id_compte+" AND vote = 1;")
                   .then(([resultat,metadata]) => {
                     for (element of resultat){
-                      console.table(resultat);
                       // On met à jour le compteur upvote des commentaires concernés
                       db.sequelize.query("UPDATE commentaire SET upvote=upvote-1 WHERE id_commentaire = "+element.id_commentaire+";")
                       .then(([resultat,metadata]) => { })
@@ -224,7 +222,7 @@ exports.ModifierProfil = (req, res, next) => {
 
         // on converti en webp selon l'extention, et modification du nom de l'avatar
         if (extention == "gif") {
-          webp.gwebpS('./images/'+req.file.filename,'./images/'+req.auth.userId+'.webp',"-q 80",logging="-v")
+          webp.gwebp('./images/'+req.file.filename,'./images/'+req.auth.userId+'.webp',"-q 80",logging="-v")
           .then(()=>{
             fs.unlink('./images/'+req.file.filename, (error) => {if (error) throw error;});
           })
@@ -266,14 +264,18 @@ exports.ModifierProfil = (req, res, next) => {
           let decrypted = decipher.update(resultat[0].email,'hex','utf8');
           decrypted += decipher.final('utf8');
 
-          res.status(200).json({
-            id: resultat[0].id_compte,
-            admin:resultat[0].admin,
-            nom: resultat[0].nom,
-            email: decrypted,
-            avatar:resultat[0].avatar,
-            message:'Modifications validées'
-          });
+          // retarder pour laisser le temps de convertir l'image si besoin
+          const sleep = (time) => new Promise(resolve => setTimeout(resolve, time));
+          sleep(1000).then(()=>{
+            res.status(200).json({
+              id: resultat[0].id_compte,
+              admin:resultat[0].admin,
+              nom: resultat[0].nom,
+              email: decrypted,
+              avatar:resultat[0].avatar,
+              message:'Modifications validées'
+            });
+          })
         })
         .catch(error => res.status(500).json({ error }));
     })

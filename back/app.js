@@ -3,8 +3,6 @@ const app = express();
 const bodyParser = require('body-parser');
 const helmet = require('helmet')
 const path = require('path');
-const mysql = require('mysql')
-const mysql2 = require('mysql2');
 require('dotenv').config()
 
 const Sequelize = require('sequelize');
@@ -24,13 +22,9 @@ try {
   console.error('Impossible de se connecter, erreur suivante :', error);
 }
 
-//sequelize.query("SELECT * FROM compte;").then(([resultat,metadata]) => {console.log(resultat);})
-
 const forumRoutes = require('./routes/forum');
 const userRoutes = require('./routes/user');
 const profilRoutes = require('./routes/profil');
-// pour le serveur d'images
-//const auth = require('./middleware/auth');
 
 app.use(helmet());
 
@@ -43,8 +37,6 @@ app.use((req, res, next) => {
 
 app.use(bodyParser.json());
 
-// pour exiger l'auth pour les images
-//app.use('/images', auth, express.static(path.join(__dirname, '/images')));
 app.use('/images', express.static(path.join(__dirname, '/images')));
 app.use('/api/forum', forumRoutes);
 app.use('/api/auth', userRoutes);

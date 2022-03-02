@@ -191,9 +191,6 @@ methods: {
                     formData.append("modifier_avatar",this.formulaire.modifier_avatar);
                     formData.append("image",fichier);
 
-                    //console.table(fichier);
-                    //console.log(this.formulaire.modifier_avatar);
-
                     console.table(formData);
                     // activation du loader
                     this.$store.state.loader = true;
@@ -216,9 +213,6 @@ methods: {
 
                         // on met à jour le localstorage
                         localStorage.setItem('compte',JSON.stringify(this.$store.state.compte));
-
-                        console.log('localstorage après modifs : ');
-                        console.table(JSON.parse(localStorage.getItem('compte')));
                     })
                     .catch((error) => {
                         this.$store.state.loader = false;

@@ -27,11 +27,9 @@ exports.Vote = (req, res, next) => {
     if ((vote[0].vote == 0) && (req.body.direction == 0)) {
       db.sequelize.query("DELETE FROM vote_"+type+" WHERE id_compte="+req.auth.userId+" AND id_"+type+"="+req.body.id_document+";")
       .then(([resultat,metadata]) => {
-        console.log('annuler downvote 1');
         // mettre à jour le compteur de downvote sur le document
         db.sequelize.query("UPDATE "+type+" SET downvote=downvote-1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
-          console.log('annuler downvote 2');
           res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
@@ -43,12 +41,10 @@ exports.Vote = (req, res, next) => {
     if ((vote[0].vote == 1) && (req.body.direction == 1)) {
       db.sequelize.query("DELETE FROM vote_"+type+" WHERE id_compte="+req.auth.userId+" AND id_"+type+"="+req.body.id_document+";")
       .then(([resultat,metadata]) => {
-        console.log('annuler upvote 1');
         // mettre à jour le compteur de upvote sur le document
         db.sequelize.query("UPDATE "+type+" SET upvote=upvote-1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
           res.status(200).json({})
-          console.log('annuler upvote 2');
         })
         .catch(error => res.status(500).json({ error }));
       })
@@ -59,11 +55,9 @@ exports.Vote = (req, res, next) => {
     if ((vote[0].vote == 0) && (req.body.direction == 1)) {
       db.sequelize.query("UPDATE vote_"+type+" SET vote=1 WHERE id_compte="+req.auth.userId+" AND id_"+type+"="+req.body.id_document+";")
       .then(([resultat,metadata]) => {
-        console.log('transformer downvote en upvote 1');
         // mettre à jour les compteurs upvote et downvote sur le document
         db.sequelize.query("UPDATE "+type+" SET downvote=downvote-1, upvote=upvote+1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
-          console.log('transformer downvote en upvote 2');
           res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
@@ -75,11 +69,9 @@ exports.Vote = (req, res, next) => {
     if ((vote[0].vote == 1) && (req.body.direction == 0)) {
       db.sequelize.query("UPDATE vote_"+type+" SET vote=0 WHERE id_compte="+req.auth.userId+" AND id_"+type+"="+req.body.id_document+";")
       .then(([resultat,metadata]) => {
-        console.log('transformer upvote en downvote 1');
         // mettre à jour les compteurs upvote et downvote sur le document
         db.sequelize.query("UPDATE "+type+" SET downvote=downvote+1, upvote=upvote-1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
-          console.log('transformer upvote en downvote 2');
           res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
@@ -91,11 +83,9 @@ exports.Vote = (req, res, next) => {
     if ((vote[0].vote == null) && (req.body.direction == 1)) {
       db.sequelize.query("INSERT INTO vote_"+type+" VALUES ("+req.auth.userId+","+req.body.id_document+",1)")
       .then(([resultat,metadata]) => {
-        console.log('ajouter un updown sans antécédent 1');
         // mettre à jour le compteur upvote sur le document
         db.sequelize.query("UPDATE "+type+" SET upvote=upvote+1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
-          console.log('ajouter un updown sans antécédent 2');
           res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
@@ -105,13 +95,11 @@ exports.Vote = (req, res, next) => {
 
     // ajouter un downvote sans antécédent
     if ((vote[0].vote == null) && (req.body.direction == 0)) {
-      console.log('ajouter un downdown sans antécédent 1');
       db.sequelize.query("INSERT INTO vote_"+type+" VALUES ("+req.auth.userId+","+req.body.id_document+",0)")
       .then(([resultat,metadata]) => {
         // mettre à jour le compteur upvote sur le document
         db.sequelize.query("UPDATE "+type+" SET downvote=downvote+1 WHERE id_"+type+"="+req.body.id_document+"")
         .then(([resultat,metadata]) => {
-          console.log('ajouter un downdown sans antécédent 2');
           res.status(200).json({})
         })
         .catch(error => res.status(500).json({ error }));
@@ -123,6 +111,7 @@ exports.Vote = (req, res, next) => {
 }
 
 exports.getArticles = (req, res, next) => {
+
   // Récupération des articles
   db.sequelize.query("SELECT article.id_article, article.id_compte, article.titre, article.image, article.texte, article.date, article.upvote, article.downvote, article.commentaire, article.signalement, compte.nom, compte.avatar FROM article JOIN compte ON article.id_compte = compte.id_compte;")
     .then(([articles,metadata]) => {
@@ -428,11 +417,16 @@ exports.postArticle = (req, res, next) => {
       .then(([votes,metadata]) => {
         if (!votes) {
           return res.status(401).json({ message: 'Votes non trouvés' });
-        }
-        res.status(200).json({
-          // on renvoie un tableau de commentaires et les votes du client
-          articles,votes,message: 'Article publié'
-        });
+        } 
+          // retarder pour laisser le temps de convertir l'image si besoin
+          const sleep = (time) => new Promise(resolve => setTimeout(resolve, time));
+          sleep(1000).then(()=>{
+            res.status(200).json({
+              // on renvoie un tableau de commentaires et les votes du client
+              articles,votes,message: 'Article publié'
+            });
+          })
+          .catch(error => res.status(500).json({ error }));
       })
       .catch(error => res.status(500).json({ error }));
     })
