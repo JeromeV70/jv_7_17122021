@@ -14,6 +14,6 @@ $ **sh start.sh**
 
 Entrer le **login** et le **mot de passe** de mysql.
 
-Le fichier **emails.txt** contient les emails pour se connecter le mot de passe qui est le même partout
+Le fichier **emails.txt** contient les emails pour se connecter et le mot de passe qui est le même partout
 
 Le compte admin@groupomania.com est administrateur
