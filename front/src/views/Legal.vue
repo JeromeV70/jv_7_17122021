@@ -1,6 +1,6 @@
 <template>
     <div id=legal>
-        <a href="mailto:test@test.com" class="bigbutton" title="contact"><img src='../assets/contact.svg' alt="contact"/></a>
+        <a href="mailto:admin_ocr@groupomania.com" class="bigbutton" title="contact"><img src='../assets/contact.svg' alt="contact"/></a>
         <p>
         <span class="titres">Identification</span><br>
         <br>

@@ -1,4 +1,12 @@
 #/bin/sh
+if [ ! -f "back/.env" ];then
+echo "Il faut ajouter le fichier .env dans le répertoire 'back'";
+exit 0;
+fi
+if [ ! -f "back/images/1.webp" ];then
+echo "Il faut ajouter les images dans le répertoire 'back/images/'";
+exit 0;
+fi
 sudo service mysql start;
 echo "Entrez votre login mysql : ";
 read login;
