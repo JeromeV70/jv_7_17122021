@@ -312,6 +312,10 @@ exports.postConforme = (req, res, next) => {
 exports.postCommentaire = (req, res, next) => {
   // Vérification sécurité
   const id_article = Number(req.body.id_article);
+
+  // Echappement des strings
+  req.body.texte = req.body.texte.replace(/[\\$'"]/g, "\\$&");
+
   if (req.body.texte.length > 1000) {
     res.status(401).json({ message: 'Non authorisé' });
   }
@@ -365,6 +369,10 @@ exports.postArticle = (req, res, next) => {
   if ((req.body.titre.length > 100) || (req.body.texte.length > 2000)) {
     res.status(401).json({ message: 'Erreur de taille' });
   }
+
+  // Echappement des strings
+  req.body.titre = req.body.titre.replace(/[\\$'"]/g, "\\$&");
+  req.body.texte = req.body.texte.replace(/[\\$'"]/g, "\\$&");
 
   let image = '';
 
@@ -420,7 +428,7 @@ exports.postArticle = (req, res, next) => {
         } 
           // retarder pour laisser le temps de convertir l'image si besoin
           const sleep = (time) => new Promise(resolve => setTimeout(resolve, time));
-          sleep(1000).then(()=>{
+          sleep(2000).then(()=>{
             res.status(200).json({
               // on renvoie un tableau de commentaires et les votes du client
               articles,votes,message: 'Article publié'

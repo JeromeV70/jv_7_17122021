@@ -133,8 +133,6 @@ exports.SupprimerCompte = (req, res, next) => {
 
 exports.ModifierProfil = (req, res, next) => {
 
-  console.table(req.body);
-
   // On récupère les informations du compte
   db.sequelize.query("SELECT email, password, nom, avatar FROM compte WHERE id_compte = "+req.auth.userId+";")
   .then(([resultat,metadata]) => {
@@ -195,8 +193,8 @@ exports.ModifierProfil = (req, res, next) => {
         res.status(400).json({ error: "erreur nom"});
         return;
       }
-        // prépartion de la requête
-        nom = req.body.nom;
+        // prépartion de la requête, avec échappement
+        nom = req.body.nom.replace(/[\\$'"]/g, "\\$&");
     }
     
     // Si suppression de l'avatar
@@ -266,7 +264,7 @@ exports.ModifierProfil = (req, res, next) => {
 
           // retarder pour laisser le temps de convertir l'image si besoin
           const sleep = (time) => new Promise(resolve => setTimeout(resolve, time));
-          sleep(1000).then(()=>{
+          sleep(2000).then(()=>{
             res.status(200).json({
               id: resultat[0].id_compte,
               admin:resultat[0].admin,

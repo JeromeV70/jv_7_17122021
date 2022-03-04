@@ -23,6 +23,8 @@ exports.signup = (req, res, next) => {
     if((!/\S+@\S+\.\S+/i.test(req.body.email)) || (req.body.email.lenght > 50) || (req.body.email.lenght <2)){res.status(400).json({ error: "erreur email"});return;}
     // vérification du nom
     if ((req.body.nom.lenght > 30) || (req.body.nom.lenght < 2)){res.status(400).json({ error: "erreur nom"});return;}
+    // Echappement du nom
+    req.body.nom = req.body.nom.replace(/[\\$'"]/g, "\\$&");
     // hashage du mot de passe
     bcrypt.hash(req.body.password, 10)
     .then(hash => {
