@@ -9,7 +9,7 @@
       <router-link to="/profil" v-if="($store.state.compte.id)" class="bigbutton" title="profil"><img src='./assets/profil.svg' alt="profil"/></router-link>
       <router-link to="/forum" v-if="($store.state.compte.id)" class="bigbutton" title="forum"><img src='./assets/forum.svg' alt="forum"/></router-link>
       <router-link to="/legal" class="bigbutton" title="legal"><img src='./assets/legal.svg' alt="legal"/></router-link>
-      <a @click="nightMode()" class="bigbutton" tabindex="0" title="mode nuit"><img src='./assets/night.svg' alt="mode nuit"/></a>
+      <a @click="nightMode()" @keyup.enter="nightMode()" class="bigbutton" tabindex="0" title="mode nuit"><img src='./assets/night.svg' alt="mode nuit"/></a>
     </nav>
     <router-view></router-view>
   </main>
