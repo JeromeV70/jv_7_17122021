@@ -1,5 +1,7 @@
 **Projet 7 "Groupomania"**
 
+(Me demander par email le livrable contenant les images, les logins et les variables d'environnement nécessaires au fonctionnement du réseau social)
+
 Lire les instructions sur le fichier pdf **P7_02_Groupomania.pdf** reçu dans le dossier livrable
 
 Installation sur Ubuntu:
